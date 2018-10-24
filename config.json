@@ -1,0 +1,8 @@
+{
+	"port": 5555,
+	"sitePath": "site",
+	"contactEmail": "will.demarest@gmail.com",
+	"mandrillApiKey": "",
+	"credentialsFile": "credentials.json",
+	"userDataFile": "userdata.json"
+}

@@ -1,0 +1,43 @@
+if [ ! -f ~/.ssh/CandyHop.pem ]; then
+    echo "You must have a file ~/.ssh/CandyHop.pem that can access the server ubuntu@playcandyhop.com"
+    echo "Please correct this and try again."
+    exit 1
+fi
+
+if [ "$1" != "deploy" ] && [ "$1" != "stop" ] && [ "$1" != "start" ] && [ "$1" != "restart" ] && [ "$1" != "watch" ]
+then
+echo "pch takes one of the following parameters:"
+echo "* deploy   - deploys latest version of candyhop onto the playcandyhop.com server, overwriting any local changes"
+echo "* start    - starts the candyhop server at playcandyhop.com"
+echo "* restart  - re-starts the candyhop server at playcandyhop.com"
+echo "* stop     - stops the candyhop server at playcandyhop.com"
+echo "* watch    - dumps the logfile from the server at playcandyhop.com"
+exit 1
+fi
+
+
+if [ "$1" == "deploy" ]
+then
+echo Deploying from github.com/wdemarest/candyhop to playcandyhop.com
+ssh ubuntu@playcandyhop.com -i ~/.ssh/CandyHop.pem "cd ~/candyhop ; git fetch --all ; git reset --hard origin/master"
+fi
+
+if [ "$1" == "stop" ] || [ "$1" == "restart" ]
+then
+echo Stopping candyhop on playcandyhop.com
+ssh ubuntu@playcandyhop.com -i ~/.ssh/CandyHop.pem "pkill nodejs"
+ssh ubuntu@playcandyhop.com -i ~/.ssh/CandyHop.pem "ps ax | grep n[o]dejs.*server.js"
+fi
+
+if [ "$1" == "start" ] || [ "$1" == "restart" ]
+then
+echo Starting candyhop on playcandyhop.com
+ssh ubuntu@playcandyhop.com -i ~/.ssh/CandyHop.pem "cd ~/candyhop ; nohup nodejs /usr/local/bin/supervisor -x nodejs -n error ./server.js >> ~/candyhop/candyhop.log 2>&1 &"
+ssh ubuntu@playcandyhop.com -i ~/.ssh/CandyHop.pem "ps ax | grep n[o]dejs.*server.js"
+fi
+
+if [ "$1" == "watch" ]
+then
+ssh ubuntu@playcandyhop.com -i ~/.ssh/CandyHop.pem "tail -f -n 100 ~/candyhop/candyhop.log"
+fi
+
