@@ -661,7 +661,14 @@ function serverStart() {
 			console.log('User '+req.session.userName+' logged out on welcome.');
 			req.session.destroy();
 		}
-		return siteServer(req,res);
+//		return siteServer(req,res);
+		const src = fs.createReadStream('./welcome.html');
+		src.pipe(res);
+	});
+
+	app.get( "/buy.html", function(req,res) {
+		const src = fs.createReadStream('./buy.html');
+		src.pipe(res);
 	});
 
 	app.get( "/solver.js", function(req,res) {
