@@ -4,5 +4,7 @@
 	"contactEmail": "will.demarest@gmail.com",
 	"mandrillApiKey": "",
 	"credentialsFile": "credentials.json",
-	"userDataFile": "userdata.json"
+	"userDataFile": "userdata.json",
+	"paymentMode": "disable",
+	"adminPassword": "qtqtqtqt"
 }

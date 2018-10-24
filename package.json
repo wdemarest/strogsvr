@@ -1,10 +1,10 @@
 {
 	"name": "CandyHop",
 	"version": "1.0.0",
-	"description" : "CandyHop delightful candy hopping game.",
-	"repository" : {
-		"type" : "git",
-		"url" : "https://github.com/wdemarest/candyhop.git"
+	"description": "CandyHop delightful candy hopping game.",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/wdemarest/candyhop.git"
 	},
 	"dependencies": {
 		"body-parser": "^1.12.4",

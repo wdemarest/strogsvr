@@ -6,6 +6,7 @@ var serveStatic = require('serve-static');
 var mkdirp = require('mkdirp');
 var url = require('url');
 var fs = require('fs');
+var path = require('path');
 var session = require('express-session');
 var FileStore = require('session-file-store')(session);
 var paypal = require('paypal-rest-sdk');
@@ -14,18 +15,23 @@ var app = express();
 
 var config = JSON.parse( fs.readFileSync("config.json",'utf8') || "" );
 
-if( !config.paymentMode ) {
-	console.log("Error: config variable 'paymentMode' missing or empty.");
-	return;
+if( config.paymentMode === 'disable' ) {
+	config.paypal = null;
 }
+else {
+	if( !config.paymentMode ) {
+		console.log("Error: config variable 'paymentMode' missing or empty.");
+		return;
+	}
 
-if( !config[config.paymentMode] ) {
-	console.log("Error: config lacks an entry named '"+paymentMode+"'.");
-	return;
+	if( !config[config.paymentMode] ) {
+		console.log("Error: config lacks an entry named '"+paymentMode+"'.");
+		return;
+	}
+	config.paypal = config[config.paymentMode];
+	config.paypal.port = config.paypal.port || "";
+	paypal.configure(config.paypal);
 }
-config.paypal = config[config.paymentMode];
-config.paypal.port = config.paypal.port || "";
-paypal.configure(config.paypal);
 
 if( !fs.existsSync('./sessions') ) {
 	console.log("Creating /sessions directory.");
@@ -417,6 +423,7 @@ function loginActivate(req,res,userName) {
 var account = {};
 
 account.login = function(req,res) {
+	let debug = true;
 	var userName = req.body.userName;
 	var password = req.body.password;
 	console.log("Login", userName);
@@ -425,7 +432,11 @@ account.login = function(req,res) {
 	if( credentials ) {
 		credentials['admin'] = config.adminPassword;
 	}
-	//console.log(credentials);
+	if( debug ) {
+		console.log( "userName: ", userName );
+		console.log( "password: ", password );
+		console.log( credentials );
+	}
 
 	var response = { result: 'failure' };
 	if( !credentials ) {
@@ -557,6 +568,7 @@ function serverStart() {
 		'/login': 1,
 		'/logout': 1,
 		'/forgot': 1,
+		'/index.html': 1,
 		'/welcome.html': 1,
 		'/buy.html':1,
 		'/payment_create':1,
@@ -570,7 +582,10 @@ function serverStart() {
 		'/stats': 1
 	};
 	console.log("\n\n"+(new Date()).toISOString()+" Serving "+config.sitePath+" on "+config.port);
-	if( config.paypal.live ) {
+	if( !config.paypal ) {
+		console.log( "NOT ACCEPTING PAYMENTS");
+	}
+	if( config.paypal && config.paypal.live ) {
 		console.log( "ACCEPTING LIVE PAYMENTS");
 		console.log(config.paypal);
 	}
@@ -654,7 +669,7 @@ function serverStart() {
 		res.send( "Payment Complete" );
 	});
 
-	var siteServer = serveStatic(config.sitePath, {'index': ['index.html']});
+//	var siteServer = serveStatic(config.sitePath, {'index': ['index.html']});
 
 	app.get( "/welcome.html", function(req,res) {
 		if( req.session ) {
@@ -671,15 +686,32 @@ function serverStart() {
 		src.pipe(res);
 	});
 
-	app.get( "/solver.js", function(req,res) {
-		if( req.session && req.session.maySolve ) {
-			return siteServer(req,res);
-		}
-		res.send('');
+// Ken got rid of this while messing with the 
+//	app.get( "/solver.js", function(req,res) {
+//		if( req.session && req.session.maySolve ) {
+//			return siteServer(req,res);
+//		}
+//		res.send('');
+//	});
+
+	app.get( '/', function(req,res,next) {
+		res.redirect('/index.html');
 	});
 
+	app.get( '/index.html', function(req,res,next) {
+		const src = fs.createReadStream('./index.html');
+		src.pipe(res);
+	});
 
-	app.use( siteServer );
+//	app.use( siteServer );
+//	var siteCandyHop = serveStatic(config.siteCandyHop, {'index': ['index.html']});
+
+	app.use('/candyhop', express.static(path.join(__dirname, '../candyhop')))	
+	app.use('/reactorRescue', express.static(path.join(__dirname, '../reactorRescue')))	
+//	app.all( '/candyhop/*', function(req,res,next) {
+//		console.log( "site candyhop" );
+//		return siteServer(req,res,next);
+//	});
 
 	app.theServer = http.createServer(app);
 	app.theServer.listen(config.port);
