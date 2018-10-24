@@ -423,7 +423,7 @@ function loginActivate(req,res,userName) {
 var account = {};
 
 account.login = function(req,res) {
-	let debug = true;
+	var debug = true;
 	var userName = req.body.userName;
 	var password = req.body.password;
 	console.log("Login", userName);

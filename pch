@@ -7,7 +7,7 @@ fi
 if [ "$1" != "deploy" ] && [ "$1" != "stop" ] && [ "$1" != "start" ] && [ "$1" != "restart" ] && [ "$1" != "status" ] && [ "$1" != "log" ]
 then
 echo "pch takes one of the following parameters:"
-echo "* deploy [server|candyhop|reactorRescue]  - deploys to and overwrites server
+echo "* deploy [server|candyhop|reactorRescue]  - deploys to and overwrites server"
 echo "* start    - starts the server"
 echo "* restart  - re-starts the server"
 echo "* stop     - stops the server at"
@@ -53,7 +53,7 @@ echo Starting strogsvr on playcandyhop.com
 ssh ubuntu@playcandyhop.com -i ~/.ssh/CandyHop.pem "cd ~/strogsvr ; nohup nodejs /usr/local/bin/supervisor -x nodejs -n error ./server.js >> ~/strogsvr/strogsvr.log 2>&1 &"
 fi
 
-if [ "$1" == "status" ] ||  [ "$1" == "start" ] || [ "$1" == "restart" ]
+if [ "$1" == "status" ] || [ "$1" == "start" ] || [ "$1" == "restart" ]
 then
 echo Status of strogsvr on playcandyhop.com
 ssh ubuntu@playcandyhop.com -i ~/.ssh/CandyHop.pem "ps ax | grep n[o]dejs.*server.js"
