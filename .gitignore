@@ -59,3 +59,18 @@ typings/
 
 # next.js build output
 .next
+
+# Compiled binary addons (http://nodejs.org/api/addons.html)
+build/Release
+
+# Dependency directory
+# https://www.npmjs.org/doc/misc/npm-faq.html#should-i-check-my-node_modules-folder-into-git
+.DS_Store
+node_modules
+.remote-sync.json
+pack
+payments
+sessions
+*.json
+!config-template.json
+!package.json

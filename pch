@@ -4,19 +4,22 @@ if [ ! -f ~/.ssh/CandyHop.pem ]; then
     exit 1
 fi
 
-if [ "$1" != "deploy" ] && [ "$1" != "stop" ] && [ "$1" != "start" ] && [ "$1" != "restart" ] && [ "$1" != "watch" ]
+if [ "$1" != "deploy" ] && [ "$1" != "stop" ] && [ "$1" != "start" ] && [ "$1" != "restart" ] && [ "$1" != "status" ] && [ "$1" != "log" ]
 then
 echo "pch takes one of the following parameters:"
-echo "* deploy [server|candyhop|reactor]  - deploys to and overwrites server
+echo "* deploy [server|candyhop|reactorRescue]  - deploys to and overwrites server
 echo "* start    - starts the server"
 echo "* restart  - re-starts the server"
 echo "* stop     - stops the server at"
-echo "* watch    - emits the logfile from the server"
+echo "* status   - shows the status of the running server"
+echo "* log      - emits the logfile from the server"
 exit 1
 fi
 
 #
-# WARNING: Deploy only works if you have already made the target directory on the server.
+# WARNING: Don't forget to "git clone" all projects into the server BEFORE first deploy.
+# Also, the server has a lot of data that is not present in the repo, including:
+# sessions/, payments/, chpack/, config.json, userdata.json
 #
 
 if [ "$1" == "deploy" ] && [ "$2" == "strogsvr" ]
@@ -31,7 +34,7 @@ echo Deploying from github.com/wdemarest/candyhop to playcandyhop.com
 ssh ubuntu@playcandyhop.com -i ~/.ssh/CandyHop.pem "cd ~/candyhop ; git fetch --all ; git reset --hard origin/master"
 fi
 
-if [ "$1" == "deploy" ] && [ "$2" == "reactor" ]
+if [ "$1" == "deploy" ] && [ "$2" == "reactorRescue" ]
 then
 echo Deploying from github.com/wdemarest/reactorRescue to playcandyhop.com
 ssh ubuntu@playcandyhop.com -i ~/.ssh/CandyHop.pem "cd ~/reactorRescue ; git fetch --all ; git reset --hard origin/master"
@@ -39,20 +42,25 @@ fi
 
 if [ "$1" == "stop" ] || [ "$1" == "restart" ]
 then
-echo Stopping candyhop on playcandyhop.com
+echo Stopping strogsvr on playcandyhop.com
 ssh ubuntu@playcandyhop.com -i ~/.ssh/CandyHop.pem "pkill nodejs"
 ssh ubuntu@playcandyhop.com -i ~/.ssh/CandyHop.pem "ps ax | grep n[o]dejs.*server.js"
 fi
 
 if [ "$1" == "start" ] || [ "$1" == "restart" ]
 then
-echo Starting candyhop on playcandyhop.com
-ssh ubuntu@playcandyhop.com -i ~/.ssh/CandyHop.pem "cd ~/candyhop ; nohup nodejs /usr/local/bin/supervisor -x nodejs -n error ./server.js >> ~/candyhop/candyhop.log 2>&1 &"
+echo Starting strogsvr on playcandyhop.com
+ssh ubuntu@playcandyhop.com -i ~/.ssh/CandyHop.pem "cd ~/strogsvr ; nohup nodejs /usr/local/bin/supervisor -x nodejs -n error ./server.js >> ~/strogsvr/strogsvr.log 2>&1 &"
+fi
+
+if [ "$1" == "status" ] ||  [ "$1" == "start" ] || [ "$1" == "restart" ]
+then
+echo Status of strogsvr on playcandyhop.com
 ssh ubuntu@playcandyhop.com -i ~/.ssh/CandyHop.pem "ps ax | grep n[o]dejs.*server.js"
 fi
 
-if [ "$1" == "watch" ]
+if [ "$1" == "log" ]
 then
-ssh ubuntu@playcandyhop.com -i ~/.ssh/CandyHop.pem "tail -f -n 100 ~/candyhop/candyhop.log"
+ssh ubuntu@playcandyhop.com -i ~/.ssh/CandyHop.pem "tail -f -n 100 ~/strogsvr/strogsvr.log"
 fi
 

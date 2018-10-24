@@ -41,9 +41,9 @@ if( !fs.existsSync('./payments') ) {
 	});
 }
 
-if( !fs.existsSync('./pack') ) {
-	console.log("Creating /pack directory.");
-	mkdirp('./pack', function(err) {
+if( !fs.existsSync('./chpack') ) {
+	console.log("Creating /chpack directory.");
+	mkdirp('./chpack', function(err) {
 		if( err ) console.log(err);
 	});
 }
@@ -293,7 +293,7 @@ progress.post = function(req,res) {
 var levelPack = new (function() {
 
 	function makePath(userName) {
-		return "pack/"+userName+".json";
+		return "chpack/"+userName+".json";
 	}
 
 	function read(userName) {
@@ -644,8 +644,8 @@ function serverStart() {
 	app.post( "/forgot", account.forgot );
 	app.get( "/progress", progress.get );
 	app.post( "/progress", progress.post );
-	app.get( "/pack", levelPack.get );
-	app.post( "/pack", levelPack.post );
+	app.get( "/chpack", levelPack.get );
+	app.post( "/chpack", levelPack.post );
 	app.get( "/stats", ops.get_stats );
 	app.post( "/emails", ops.get_emails );
 	app.get( "/user", ops.get_user );
