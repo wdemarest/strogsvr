@@ -7,19 +7,34 @@ fi
 if [ "$1" != "deploy" ] && [ "$1" != "stop" ] && [ "$1" != "start" ] && [ "$1" != "restart" ] && [ "$1" != "watch" ]
 then
 echo "pch takes one of the following parameters:"
-echo "* deploy   - deploys latest version of candyhop onto the playcandyhop.com server, overwriting any local changes"
-echo "* start    - starts the candyhop server at playcandyhop.com"
-echo "* restart  - re-starts the candyhop server at playcandyhop.com"
-echo "* stop     - stops the candyhop server at playcandyhop.com"
-echo "* watch    - dumps the logfile from the server at playcandyhop.com"
+echo "* deploy [server|candyhop|reactor]  - deploys to and overwrites server
+echo "* start    - starts the server"
+echo "* restart  - re-starts the server"
+echo "* stop     - stops the server at"
+echo "* watch    - emits the logfile from the server"
 exit 1
 fi
 
+#
+# WARNING: Deploy only works if you have already made the target directory on the server.
+#
 
-if [ "$1" == "deploy" ]
+if [ "$1" == "deploy" ] && [ "$2" == "strogsvr" ]
+then
+echo Deploying from github.com/wdemarest/strogsvr to playcandyhop.com
+ssh ubuntu@playcandyhop.com -i ~/.ssh/CandyHop.pem "cd ~/strogsvr ; git fetch --all ; git reset --hard origin/master"
+fi
+
+if [ "$1" == "deploy" ] && [ "$2" == "candyhop" ]
 then
 echo Deploying from github.com/wdemarest/candyhop to playcandyhop.com
 ssh ubuntu@playcandyhop.com -i ~/.ssh/CandyHop.pem "cd ~/candyhop ; git fetch --all ; git reset --hard origin/master"
+fi
+
+if [ "$1" == "deploy" ] && [ "$2" == "reactor" ]
+then
+echo Deploying from github.com/wdemarest/reactorRescue to playcandyhop.com
+ssh ubuntu@playcandyhop.com -i ~/.ssh/CandyHop.pem "cd ~/reactorRescue ; git fetch --all ; git reset --hard origin/master"
 fi
 
 if [ "$1" == "stop" ] || [ "$1" == "restart" ]
