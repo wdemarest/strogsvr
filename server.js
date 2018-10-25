@@ -57,8 +57,8 @@ if( !fs.existsSync('./chpack') ) {
 }
 
 if( !fs.existsSync(config.codeFile) ) {
-	console.log("Error: file "+config.codeFile+" must exist. Run codegen.js");
-	return;
+	console.log("Creating", config.codeFile);
+	fs.writeFileSync(config.userDataFile,JSON.stringify({},null,4));
 }
 
 if( !fs.existsSync(config.credentialsFile) ) {
