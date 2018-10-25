@@ -14,6 +14,8 @@ var paypal = require('paypal-rest-sdk');
 var app = express();
 
 var config = JSON.parse( fs.readFileSync("config.json",'utf8') || "" );
+config.codeFile = config.codeFile || "codes.json";
+config.credentialsFile = config.credentialsFile || "credentials.json";
 
 if( config.paymentMode === 'disable' ) {
 	config.paypal = null;
@@ -54,6 +56,11 @@ if( !fs.existsSync('./chpack') ) {
 	});
 }
 
+if( !fs.existsSync(config.codeFile) ) {
+	console.log("Error: file "+config.codeFile+" must exist. Run codegen.js");
+	return;
+}
+
 if( !fs.existsSync(config.credentialsFile) ) {
 	console.log("Creating", config.credentialsFile);
 	console.log("Filling with user 'admin'");
@@ -78,7 +85,6 @@ if( !fs.existsSync(config.userDataFile) ) {
 		}
 	},null,4));
 }
-
 
 // See https://developer.paypal.com
 // See samples here: https://github.com/paypal/PayPal-node-SDK/tree/master/samples
@@ -173,12 +179,18 @@ payment.cancel = function(req,res) {
 
 payment.useCode = function(req,res) {
 	var userName = req.session.userName;
-	var password = req.body.password;
+	var code = (''+req.body.password).toUpperCase();
 	//console.log(req.body);
 
+	var codeData = codeDataRead();
+	var userData = userDataRead(userName);
 	var errorMessage = 
 		!userName ? "No user is logged in." :
-		password != config.purchaseCode ? "Invalid purchase code." :
+		!userData ? "No such user." :
+		!code ? "No code was entered." :
+		userData.code !== undefined && userData.code == code ? "Code already used." :
+		codeData[code]===undefined ? "Invalid purchase code." :
+		codeData[code]!==1 ? "Code already used." :
 		null;
 
 	if( errorMessage ) {
@@ -187,14 +199,17 @@ payment.useCode = function(req,res) {
 		return;
 	}
 
-	console.log("User "+userName+" used a purchase code");
+	console.log("User "+userName+" used purchase code "+code);
 	var paymentFile = 'payments/'+(config.paypal.live?'':'PCODE_')+userName+'_'+(new Date()).toISOString().substring(0,19).replace(/[:.]/g,'-')+'.json';
 	console.log("Saving to "+paymentFile);
 	fs.writeFileSync(paymentFile, JSON.stringify({userName:userName, date:(new Date()).toISOString()},null,4));
-	var userData = userDataRead(userName);
 	userDataWrite(userName,function(userData) {
 		userData.paid = 1;
+		userData.code = code;
 		req.session.paid = userData.paid;
+	});
+	codeDataWrite(function(codeData) {
+		codeData[code] = userName;
 	});
 	res.redirect('/buy.html?pay=success')
 }
@@ -237,6 +252,17 @@ emailer.submit = function(req, res) {
 		}
 	);
 };
+
+function codeDataRead() {
+	var codeData = JSON.parse( fs.readFileSync(config.codeFile,'utf8') || "{}" );
+	return codeData;
+}
+
+function codeDataWrite(fn) {
+	var codeData = JSON.parse( fs.readFileSync(config.codeFile,'utf8') || "{}" );
+	fn(codeData);
+	fs.writeFileSync(config.codeFile,JSON.stringify(codeData,null,4));
+}
 
 function userDataRead(userName) {
 	var userData = JSON.parse( fs.readFileSync(config.userDataFile,'utf8') || "{}" );
