@@ -81,10 +81,19 @@ if( !fs.existsSync(config.userDataFile) ) {
 			isDemo: 0,
 			isUnlocked: 1,
 			maySolve: 1,
-			progress: []
+			progressCh: [],
+			progressRr: []
 		}
 	},null,4));
 }
+
+var userDataBlank = {
+	userName: '',
+	userEmail: '',
+	paid: 0,
+	progressCh: [],
+	progressRr: []
+};
 
 // See https://developer.paypal.com
 // See samples here: https://github.com/paypal/PayPal-node-SDK/tree/master/samples
@@ -274,23 +283,23 @@ function userDataRead(userName) {
 
 function userDataWrite(userName,fn) {
 	var userData = JSON.parse( fs.readFileSync(config.userDataFile,'utf8') || "{}" );
-	userData[userName] = userData[userName] || { userName: '', userEmail: '', paid: 0, progress: [] };
+	userData[userName] = userData[userName] || userDataBlank;
 	fn(userData[userName]);
 	fs.writeFileSync(config.userDataFile,JSON.stringify(userData,null,4));
 }
 
-var progress = {};
+var progressCh = {};
 
-progress.get = function(req,res) {
-	//console.log('progress.get');
+progressCh.get = function(req,res) {
+	//console.log('progressCh.get');
 	var userName = req.session.userName;
 	//console.log(userName);
 	var userData = userDataRead(userName);
 	//console.log(userData);
-	res.send( userData.progress || [] );
+	res.send( userData.progressCh || [] );
 }
 
-progress.post = function(req,res) {
+progressCh.post = function(req,res) {
 
 	var userName = req.session.userName;
 	var level = req.body.level;
@@ -300,22 +309,61 @@ progress.post = function(req,res) {
 	var points = req.body.points || 0;
 	var stars = req.body.stars || 0;
 	var userData = userDataRead(userName);
-	var progress = userData.progress[level] || {points: 0, stars: 0, tries: 0};
+	var score = userData.progressCh[level] || {points: 0, stars: 0, tries: 0};
 
 	userDataWrite(userName,function(userData) {
-		userData.progress = userData.progress || [];
-		// Save this level's best progress
-		userData.progress[level] = {
-			points: Math.max(progress.points || 0, points),
-			stars: Math.max(progress.stars || 0, stars),
-			tries: (progress.tries || 0) + 1
+		userData.progressCh = userData.progressCh || [];
+		// Save this level's best score
+		userData.progressCh[level] = {
+			points: Math.max(score.points || 0, points),
+			stars: Math.max(score.stars || 0, stars),
+			tries: (score.tries || 0) + 1
 		};
 		// Open up the next level for play
-		if( stars > 0 && (userData.progress[level+1] === undefined || userData.progress[level+1] === null) ) {
-			userData.progress[level+1] = {
+		if( stars > 0 && (userData.progressCh[level+1] === undefined || userData.progressCh[level+1] === null) ) {
+			userData.progressCh[level+1] = {
 				points: 0,
 				stars: 0,
 				tries: 0
+			};
+		}
+	});
+	return res.send( { result: 'success' } );
+}
+
+var progressRr = {};
+
+progressRr.get = function(req,res) {
+	//console.log('progressRr.get');
+	var userName = req.session.userName;
+	//console.log(userName);
+	var userData = userDataRead(userName);
+	//console.log(userData);
+	res.send( userData.progressRr || [] );
+}
+
+progressRr.post = function(req,res) {
+
+	var userName = req.session.userName;
+	var level = req.body.level;
+	if( level === undefined || level === null ) {
+		return res.send( { result: 'failure', message: 'no level specified', detail: req.body } );
+	}
+	var timeFail = 9999;
+	var time = req.body.time || timeFail;
+	var userData = userDataRead(userName);
+
+	userDataWrite(userName,function(userData) {
+		userData.progressRr = userData.progressRr || [];
+		var score = userData.progressRr[level] || { time: timeFail };
+		// Save this level's best score
+		userData.progressRr[level] = {
+			time: Math.min(score.time || timeFail, time),
+		};
+		// Open up the next level for play
+		if( time < timeFail && (userData.progressRr[level+1] === undefined || userData.progressRr[level+1] === null) ) {
+			userData.progressRr[level+1] = {
+				time: timeFail
 			};
 		}
 	});
@@ -683,8 +731,10 @@ function serverStart() {
 	app.post( "/login", account.login );
 	app.post( "/logout", account.logout );
 	app.post( "/forgot", account.forgot );
-	app.get( "/progress", progress.get );
-	app.post( "/progress", progress.post );
+	app.get( "/progressCh", progressCh.get );
+	app.post( "/progressCh", progressCh.post );
+	app.get( "/progressRr", progressRr.get );
+	app.post( "/progressRr", progressRr.post );
 	app.get( "/chpack", levelPack.get );
 	app.post( "/chpack", levelPack.post );
 	app.get( "/stats", ops.get_stats );
