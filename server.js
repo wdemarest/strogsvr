@@ -331,6 +331,25 @@ progressCh.post = function(req,res) {
 	return res.send( { result: 'success' } );
 }
 
+var recordsRr = {};
+recordsRr.get = function(req,res) {
+	var userData = userDataRead(true);
+	var i;
+	var best = [];
+	for( var userName in userData ) {
+		var user = userData[userName];
+		if( !user || !user.progressRr ) continue;
+		for( var i=0 ; i<user.progressRr.length ; ++i ) {
+			if( best[i] === undefined || user.progressRr[i].time < best[i].time ) {
+				best[i] = best[i] || {};
+				best[i].time = user.progressRr[i].time;
+				best[i].userName = userName;
+			}
+		}
+	}
+	return res.send( best );
+}
+
 var progressRr = {};
 
 progressRr.get = function(req,res) {
@@ -735,6 +754,7 @@ function serverStart() {
 	app.post( "/progressCh", progressCh.post );
 	app.get( "/progressRr", progressRr.get );
 	app.post( "/progressRr", progressRr.post );
+	app.get( "/recordsRr", recordsRr.get );
 	app.get( "/chpack", levelPack.get );
 	app.post( "/chpack", levelPack.post );
 	app.get( "/stats", ops.get_stats );
