@@ -90,7 +90,7 @@ then launch your browser and visit the appropriate IP address on port 80.
 While logged in to the koding.com server, or any machine that has its public key on
 the playcandyhop.com server, run:
 
-    ./pch [ deploy app | stop | start | restart | status | log ]
+    ./sg [ deploy app | stop | start | restart | status | log | login | fetch]
     deploy app can be strogsvr, candyhop, or reactorRescue
 
 * deploy - forces the playcandyhop.com machine to conform to the git master
@@ -99,6 +99,8 @@ the playcandyhop.com server, run:
 * restart - shuts down any running server and starts it up fresh, with auto-restarting
 * status - tells the server status
 * log - shows the server's log file
+* login - connects you to the server shell
+* fetch - copies all important server files to local archive
 
 # To sign players up
 
