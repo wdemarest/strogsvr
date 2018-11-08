@@ -58,7 +58,7 @@ if( !fs.existsSync('./chpack') ) {
 
 if( !fs.existsSync(config.codeFile) ) {
 	console.log("Creating", config.codeFile);
-	fs.writeFileSync(config.userDataFile,JSON.stringify({},null,4));
+	fs.writeFileSync(config.codeFile,JSON.stringify({},null,4));
 }
 
 if( !fs.existsSync(config.credentialsFile) ) {
@@ -66,24 +66,6 @@ if( !fs.existsSync(config.credentialsFile) ) {
 	console.log("Filling with user 'admin'");
 	fs.writeFileSync(config.credentialsFile,JSON.stringify({
 		"admin": "" // the username 'admin' always is tested against 'config.adminPassword'
-	},null,4));
-}
-
-if( !fs.existsSync(config.userDataFile) ) {
-	console.log("Creating", config.userDataFile);
-	console.log("Adding user data for 'admin'");
-	fs.writeFileSync(config.userDataFile,JSON.stringify({
-		"admin": {
-			userName: "admin",
-			userEmail: "",
-			paid: 1,
-			isAdmin: 1,
-			isDemo: 0,
-			isUnlocked: 1,
-			maySolve: 1,
-			progressCh: [],
-			progressRr: []
-		}
 	},null,4));
 }
 
@@ -95,6 +77,42 @@ var userDataBlank = {
 	progressRr: []
 };
 
+var adminDataBlank = {
+	userName: "admin",
+	userEmail: "",
+	paid: 1,
+	isAdmin: 1,
+	isDemo: 0,
+	isUnlocked: 1,
+	maySolve: 1,
+	progressCh: [],
+	progressRr: []
+};
+
+function validateAndCorrectUserData(){
+	if( !fs.existsSync(config.userDataFile) ) {
+		console.log("Creating", config.userDataFile);
+		console.log("Adding user data for 'admin'");
+		fs.writeFileSync(config.userDataFile,JSON.stringify({},null,4));
+	}
+
+	var credentials = JSON.parse( fs.readFileSync(config.credentialsFile,'utf8') || "{}" );
+	var userData = JSON.parse( fs.readFileSync(config.userDataFile,'utf8') || "{}" );
+
+	for (var userName in credentials) {
+		var blank = JSON.parse(JSON.stringify(userName=='admin' ? adminDataBlank : userDataBlank));
+		blank.userName = userName;
+		if( !userData[userName] ) {
+			console.log("Correcting empty user", userName);
+			console.log("Improper data was:", userData[userName]);
+		}
+		userData[userName] = userData[userName] || blank;
+	}
+	fs.writeFileSync(config.userDataFile,JSON.stringify(userData,null,4));
+}
+
+validateAndCorrectUserData()
+	
 // See https://developer.paypal.com
 // See samples here: https://github.com/paypal/PayPal-node-SDK/tree/master/samples
 //paypal.configure( fs.readFileSync('paypal_credentials.json', 'utf8') );
