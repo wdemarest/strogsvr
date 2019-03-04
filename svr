@@ -6,8 +6,8 @@ fi
 
 if [ "$1" != "deploy" ] && [ "$1" != "stop" ] && [ "$1" != "start" ] && [ "$1" != "restart" ] && [ "$1" != "status" ] && [ "$1" != "log" ] && [ "$1" != "login" ] && [ "$1" != "fetch" ]
 then
-echo "pch takes one of the following parameters:"
-echo "* deploy [server|candyhop|reactorRescue]  - deploys to and overwrites server"
+echo "svr takes one of the following parameters:"
+echo "* deploy [strogsrv|candyhop|reactorRescue]  - deploys to and overwrites server"
 echo "* start    - starts the server"
 echo "* restart  - re-starts the server"
 echo "* stop     - stops the server at"
@@ -73,19 +73,22 @@ fi
 
 if [ "$1" == "fetch" ]
 then
-echo Pulling files from server into ./archive
+
+export ARCHIVE="archive_$(date +"%Y_%m_%d_%H_%M_%S")"
+
+echo Pulling files from server into $ARCHIVE
 if [ ! -f ./svr ]; then
 echo Must be run from strogsvr directory
 exit
 fi
-mkdir -p archive
-mkdir -p archive/payments
-mkdir -p archive/chpack
-scp -i ~/.ssh/CandyHop.pem ubuntu@playcandyhop.com:strogsvr/config.json ./archive
-scp -i ~/.ssh/CandyHop.pem ubuntu@playcandyhop.com:strogsvr/credentials.json ./archive
-scp -i ~/.ssh/CandyHop.pem ubuntu@playcandyhop.com:strogsvr/userdata.json ./archive
-scp -i ~/.ssh/CandyHop.pem ubuntu@playcandyhop.com:strogsvr/codes.json ./archive
-scp -i ~/.ssh/CandyHop.pem ubuntu@playcandyhop.com:strogsvr/payments/* ./archive/payments
-scp -i ~/.ssh/CandyHop.pem ubuntu@playcandyhop.com:strogsvr/chpack/* ./archive/chpack
+mkdir -p $ARCHIVE
+mkdir -p $ARCHIVE/payments
+mkdir -p $ARCHIVE/chpack
+scp -i ~/.ssh/CandyHop.pem ubuntu@playcandyhop.com:strogsvr/config.json ./$ARCHIVE
+scp -i ~/.ssh/CandyHop.pem ubuntu@playcandyhop.com:strogsvr/credentials.json ./$ARCHIVE
+scp -i ~/.ssh/CandyHop.pem ubuntu@playcandyhop.com:strogsvr/userdata.json ./$ARCHIVE
+scp -i ~/.ssh/CandyHop.pem ubuntu@playcandyhop.com:strogsvr/codes.json ./$ARCHIVE
+scp -i ~/.ssh/CandyHop.pem ubuntu@playcandyhop.com:strogsvr/payments/* ./$ARCHIVE/payments
+scp -i ~/.ssh/CandyHop.pem ubuntu@playcandyhop.com:strogsvr/chpack/* ./$ARCHIVE/chpack
 fi
 
