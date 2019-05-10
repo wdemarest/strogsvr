@@ -13,10 +13,10 @@
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
 <script>
 	function readCookie(name) {
-		var nameEQ = name + "=";
-		var ca = document.cookie.split(';');
-		for( var i = 0; i < ca.length; i++ ) {
-			var c = ca[i];
+		let nameEQ = name + "=";
+		let ca = document.cookie.split(';');
+		for( let i = 0; i < ca.length; i++ ) {
+			let c = ca[i];
 			while( c.charAt(0) == ' ' ) c = c.substring(1, c.length);
 			if (c.indexOf(nameEQ) == 0) return unescape( c.substring(nameEQ.length, c.length) );
 		}
@@ -25,13 +25,13 @@
 	
 	function getParameterByName(name) {
 		name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
-		var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+		let regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
 			results = regex.exec(location.search);
 		return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
 	}
 
 	$(document).ready(function() {
-		var paymentResult = getParameterByName('pay');
+		let paymentResult = getParameterByName('pay');
 		if( paymentResult == 'success' ) {
 			$('#buy-success').modal('show');
 		}
@@ -56,7 +56,7 @@
 				<p>You can now visit <b style="font-size: 18px; color: blue;">strog.com</b> any time and play! Good Luck!</p>
 			</div>
 			<div class="modal-footer">
-				<a type="button" class="btn btn-primary" href="/welcome.html">Logout</a>&nbsp;
+				<a type="button" class="btn btn-primary" href="/logout.html">Logout</a>&nbsp;
 				<a type="button" class="btn btn-primary" href="/index.html">Play Now</a>
 			</div>
 		</div>
@@ -74,7 +74,7 @@
 			</div>
 			<div class="modal-footer">
 				<button type="button" class="btn btn-default" data-dismiss="modal">Try Again</button>
-				<a type="button" class="btn btn-primary" href="/welcome.html">Skip It</a>
+				<a type="button" class="btn btn-primary" href="/index.html">Skip It</a>
 			</div>
 		</div>
 	</div>
@@ -121,7 +121,7 @@
 	</div>
 	<div class="row">
 		<div class="col-md-6" style="margin:8px; margin-left:30px;">
-				<a class="spacer" href="/welcome.html">or cancel</a>
+				<a class="spacer" href="/index.html">or cancel</a>
 		</div>
 	</div>
 </div>

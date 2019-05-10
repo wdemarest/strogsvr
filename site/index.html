@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Strog Entertainment</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link href="https://fonts.googleapis.com/css?family=Comfortaa" rel="stylesheet">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap-theme.min.css">
+<link rel="stylesheet" href="//code.cdn.mozilla.net/fonts/fira.css">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+<style>
+	/* Space out content a bit */
+body {
+  background-color: #131313;
+  color: white;
+}
+
+.main {
+	background-image: url(image/bg.jpg);
+}
+
+a.logo img {
+	height: 60px;
+	visibility: hidden;
+}
+
+a.logo {
+	padding-left: 4px;
+	padding-right: 4px;
+	border-radius: 6px;
+	background: url(image/strogLogoGradients.png) no-repeat center center;
+	background-size: contain;
+	display: inline-block;
+	transition: all 0.2s ease-out;
+}
+
+a.logo:hover {
+	text-decoration: none;
+	transition: all 0.2s ease-in;
+	background: url(image/strogLogoWhiteNoCircle.png) no-repeat center center;
+	background-size: contain;
+}
+
+.mainPage h2 {
+	font-family: futura;
+	color: #aaa;
+}
+
+.modal-title, .modal-body, .textBlack {
+  color: black;
+}
+
+.gameRow {
+}
+
+.gameBox {
+	height: 240px;
+	display: table;
+	text-align: center;
+	position: relative;
+}
+
+.centerContent {
+	text-align: center;
+}
+
+.shadowStoneFeature {
+	width: 100%;
+	padding-bottom: 6%;
+	background-color: black;
+}
+
+.shadowStoneFeature img {
+	width: 70%;
+}
+
+@keyframes shadowStoneGlow {
+    to {
+    	text-shadow: -13px 7px 26px #efe59b;
+    }
+}
+
+.shadowStoneFeature h4 {
+	position: absolute;
+	top: 3%;
+	right: 7%;
+	font-size: 400%;
+	font-weight: bold;
+	font-family: "luminari";
+	margin-top: 0%;
+	text-shadow: 0px 5px 20px #7a755c;
+	color: black;
+	letter-spacing: -0.10em;
+	user-select: none;
+	animation: shadowStoneGlow 4s infinite alternate;
+}
+
+.shadowStoneFeature button {
+	width: 30%;
+	padding-bottom: 1%;
+	padding-top: 1%;
+	background-color: black;
+	border-radius: 10px;
+	position: absolute;
+	top: 24%;
+	font-size: 150%;
+	right: 12%;
+	transition: all 0.2s ease-out;
+}
+
+.shadowStoneFeature button:hover {
+	background-color: #444;
+	transition: all 0.2s ease-in;
+}
+
+.shadowStoneFeature div {
+	position: absolute;
+	bottom: 3%;
+	left: 7%;
+	font-size: 240%;
+	font-weight: bold;
+	font-family: "luminari";
+	color: #aaa;
+}
+
+.gameFrame {
+	display: block;
+	margin-left: 2%;
+	margin-right: 2%;
+    height: 90%;
+    text-align: center;
+    overflow: hidden;
+    border: 1px solid transparent;
+	box-shadow: inset 0 0 100px 100px rgba(255, 255, 255, 0);
+	transition: all 0.3s ease-in;
+}
+
+.gameFrame:hover {
+    border: 1px solid white;
+	box-shadow: inset 0 0 100px 100px rgba(255, 255, 255, 0.07);
+	transition: all 0.2s ease-in;
+	text-decoration: none;
+}
+
+.gamePlayButton {
+	margin-top:55%;
+}
+
+.candyHop div {
+	font-family: 'Comfortaa', cursive;
+}
+
+.candyHop {
+	background-image: linear-gradient( rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7) ), url("image/waterBackgroundSmall.jpg");
+}
+
+.candyHop div {
+    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #777, 1px 1px 0 #777;
+}
+
+.candyHop img {
+	width: 100%;
+    margin-left: -8%;
+    margin-top: -13%;
+    display: block;
+    position: absolute;
+}
+
+.shadowStone {
+	background-image: linear-gradient( rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7) ), url("image/floor3.jpg");
+	background-size:40%;
+}
+
+.shadowStone img {
+	width: 64%;
+	margin-left: 8%;
+	margin-top: 6%;
+	display: block;
+	position: absolute;
+}
+
+.reactorRescue {
+	background-image: url("image/planetAsteroidBelt2a.jpg");
+}
+
+.reactorRescue img {
+	width: 60%;
+	margin-left: 10%;
+	margin-top: 10%;
+	display: block;
+	position: absolute;
+}
+
+.textReactorRescue {
+	font-family: "impact";
+    color: rgb(6, 17, 22);
+    text-shadow: -1px -1px 0 #acbccc, 1px -1px 0 #acbccc, -1px 1px 0 #acbccc, 1px 1px 0 #acbccc;
+}
+
+.fadedShadows {
+	font-weight: bold;
+	font-family: "luminari";
+	margin-top: 0%;
+	text-shadow: 0px 5px 20px #efe59b;
+	color: black;
+	letter-spacing: -0.10em;
+	user-select: none;
+	transition: all 0.25s ease-out;
+}
+
+.slide-left {
+	animation: slide-left 1s forwards;
+	opacity: 0;
+}
+
+.gameTitle {
+	font-size: 180%;
+	margin-top: 80%;
+}
+
+.delay0 {
+}
+
+.delay1 {
+	animation-delay: 1s;
+}
+
+.delay2 {
+	animation-delay: 2s;
+}
+
+@keyframes slide-left {
+  from {
+    margin-left: 100%;
+    width: 200%;
+    opacity: 0;
+  }
+
+  to {
+    margin-left: 0%;
+    width: 100%;
+    opacity: 1;
+  }
+}
+
+nav a {
+	cursor: pointer;
+}
+
+/* Everything but the jumbotron gets side spacing for mobile first views */
+.header,
+.marketing,
+.footer {
+  padding-right: 15px;
+  padding-left: 15px;
+}
+
+/* Custom page header */
+.header {
+	margin-top: 10px;
+	margin-bottom: 20px;
+	border-bottom: 0px solid #e5e5e5;
+}
+/* Make the masthead heading the same height as the navigation */
+.header h3 {
+  margin-top: 0;
+  margin-bottom: 0;
+  line-height: 40px;
+}
+
+/* Custom page footer */
+.footer {
+  padding-top: 19px;
+  color: #777;
+  border-top: 1px solid #e5e5e5;
+}
+
+/* Customize container */
+@media (min-width: 768px) {
+  .container {
+    max-width: 730px;
+  }
+}
+.container-narrow > hr {
+  margin: 30px 0;
+}
+
+/* Main marketing message and sign up button */
+.jumbotron {
+  text-align: center;
+  border-bottom: 1px solid #e5e5e5;
+}
+.jumbotron .btn {
+  padding: 14px 24px;
+  font-size: 21px;
+}
+
+/* Responsive: Portrait tablets and up */
+@media screen and (min-width: 768px) {
+  /* Remove the padding we set earlier */
+  .header,
+  .marketing,
+  .footer {
+    padding-right: 0;
+    padding-left: 0;
+  }
+
+  /* Remove the bottom border on the jumbotron for visual effect */
+  .jumbotron {
+    border-bottom: 0;
+  }
+}
+
+.ctr {
+	float: none;
+	margin: auto;
+}
+</style>
+
+<script>
+let Cookie = {
+	set: function(name,value,days) {
+		var expires = "";
+		if (days) {
+			var date = new Date();
+			date.setTime(date.getTime() + (days*24*60*60*1000));
+			expires = "; expires=" + date.toUTCString();
+		}
+		document.cookie = name + "=" + (value || "")  + expires + "; path=/";
+	},
+	get: function(name) {
+		var nameEQ = name + "=";
+		var ca = document.cookie.split(';');
+		for(var i=0;i < ca.length;i++) {
+			var c = ca[i];
+			while (c.charAt(0)==' ') c = c.substring(1,c.length);
+			if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
+		}
+		return null;
+	},
+	erase: function(name) {   
+		document.cookie = name+'=; Max-Age=-99999999;';  
+	}
+}
+
+function logout() {
+	$.ajax({
+		url: '/logout',
+		method: 'POST',
+		contentType:"application/json; charset=utf-8",
+		data: {},
+		success: function() {
+			window.location = 'index.html';
+		},
+		error: function(jqXHR, textStatus) {
+			alert(textStatus);
+		}
+	});
+
+}
+
+function signupSubmit() {
+	let self = this;
+
+	function enable(state) {
+		$(self).find('.form-control').prop('disabled', !state);
+		$(self).find('button[type="submit"]').prop('disabled', !state);
+		$(self).find('.fa-spin').toggleClass('hidden',state);
+	}
+
+	try {
+		enable(false);
+		let data = {}
+		let form = $(self).find('.form-control');
+		$.each(form,function(index,value) {
+			data[value.name] = $(value).val();
+		});
+
+		function failure(message) {
+			$('#signup-failure').modal('show');
+			$('#failMessage').text(message);
+			enable(true);
+		}
+
+		function success(response) {
+			let r = typeof response == 'string' ? JSON.parse(response) : response;
+			if( r.result == 'success' ) {
+				$(self).find('.fa-spin').toggleClass('hidden',false);
+				$('#signup-success').modal('show');
+				return;
+			}
+			failure(r.message);
+		}
+
+		$.ajax({
+			url: '/signup',
+			method: 'POST',
+			contentType:"application/json; charset=utf-8",
+			data: JSON.stringify(data),
+			success: success,
+			error: function(jqXHR, textStatus) {
+				failure(textStatus);
+			}
+		});
+
+	}
+	catch(e) {
+		debugger;
+	}
+	return false;
+}
+
+
+function loginSubmit() {
+	let self = this;
+
+	function enable(state) {
+		$(self).find('.form-control').prop('disabled', !state);
+		$(self).find('button[type="submit"]').prop('disabled', !state);
+		$(self).find('.fa-spin').toggleClass('hidden',state);
+	}
+
+	try {
+		enable(false);
+		let data = {}
+		let form = $(self).find('.form-control');
+		$.each(form,function(index,value) {
+			data[value.name] = $(value).val();
+		});
+
+		function failure(message) {
+			$('#login-failure').modal('show');
+			$('#failMessage').text(message);
+			enable(true);
+		}
+
+		function success(response) {
+			let r = typeof response == 'string' ? JSON.parse(response) : response;
+			if( r.result == 'success' ) {
+				window.location = 'index.html';
+				//$(self).find('.fa-spin').toggleClass('hidden',false);
+				//$('#login-success').modal('show');
+			}
+			failure(r.message);
+		}
+
+		$.ajax({
+			url: '/login',
+			method: 'POST',
+			contentType:"application/json; charset=utf-8",
+			data: JSON.stringify(data),
+			success: success,
+			error: function(jqXHR, textStatus) {
+				failure(textStatus);
+			}
+		});
+
+	}
+	catch(e) {
+		debugger;
+	}
+	return false;
+}
+
+function forgot(userName) {
+	if( !userName ) {
+		return alert( "Please enter your username." );
+	}
+	
+	$.ajax({
+		url: '/forgot',
+		method: 'POST',
+		contentType:"application/json; charset=utf-8",
+		data: JSON.stringify({userName:userName}),
+		success: function(result) {
+			if( result.status == 'success' ) {
+				alert( "We just sent an email with your login information. It might take a while to arrive, and don't forget to check your spam folder!");
+			}
+			else {
+				alert( "Error: The Strog Entertainment server said '"+JSON.stringify(result) );
+			}
+		},
+		error: function(jqXHR, textStatus) {
+			alert( "Unable to send email.\n"+textStatus);
+		}
+	});
+}
+
+function main() {
+	console.log('Starting page.');
+	$('.userName').html( Cookie.get( 'userName' ) );
+	setInterval( ()=>{
+		let a = 1;
+	}, 0.5*1000 );
+}
+
+$(document).ready( main );
+
+</script>
+</head>
+<body>
+<div id="signup-dialog" class="modal fade">
+	<div class="modal-dialog">
+		<div class="modal-content modal-smaller">
+			<div class="modal-header">
+			<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+				<h4 class="modal-title">Signup With Strog Entertainment</h4>
+			</div>
+			<div class="modal-body">
+				<p>Fill out this form to sign up with Strog Entertainment.</p>
+				<form
+					class="form-horizontal"
+					onsubmit="return signupSubmit.apply(this,[]);"
+				>
+					<fieldset>
+					<!-- Text input-->
+					<div class="form-group">
+						<div class="col-xs-8 inputGroupContainer">
+						<div class="input-group">
+						<span class="input-group-addon"><i class="glyphicon glyphicon-user"></i></span>
+						<input name="userName" autocapitalize="off" placeholder="User Name" class="form-control" type="text" required>
+							</div>
+						</div>
+					</div>
+
+					<div class="form-group">
+						<div class="col-xs-8 inputGroupContainer">
+						<div class="input-group">
+							<span class="input-group-addon"><i class="glyphicon glyphicon-envelope"></i></span>
+							<input name="userEmail" placeholder="Email" class="form-control contact_email" type="text" required>
+							</div>
+						</div>
+						<span class="small text-muted"><i>We won't share your email with anyone, ever.</i></span>
+					</div>
+
+					<!-- Text input-->
+					<div class="form-group">
+						<div class="col-xs-8 inputGroupContainer">
+						<div class="input-group">
+						<span class="input-group-addon"><i class="glyphicon glyphicon-user"></i></span>
+						<input name="password" autocapitalize="off" placeholder="Password" class="form-control" type="password" required>
+							</div>
+						</div>
+						<span class="small text-muted"><i>Must be at least 8 characters.</i></span>
+					</div>
+
+					<!-- Text input-->
+					<div class="form-group">
+						<div class="col-xs-8 inputGroupContainer">
+						<div class="input-group">
+						<span class="input-group-addon"><i class="glyphicon glyphicon-user"></i></span>
+						<input name="confirmation" autocapitalize="off" placeholder="Password Confirmation" class="form-control" type="password" required>
+							</div>
+						</div>
+					</div>
+
+					<!-- Button -->
+					<div class="form-group">
+						<label class="col-xs-4 control-label"></label>
+						<div class="col-xs-4">
+							<button type="submit" class="btn btn-info">
+							<span><i class="fa fa-refresh fa-spin hidden"></i></span>
+									Complete Signup Now
+							</button>
+						</div>
+					</div>
+
+					</fieldset>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
+<div id="signup-success" class="modal fade">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h4 class="modal-title">Thanks for signing up!</h4>
+			</div>
+			<div class="modal-body">
+				<p>You are nearly ready to play.</p>
+			</div>
+			<div class="modal-footer">
+				<a type="button" class="btn btn-primary" href="/buy.html">Continue</a>
+			</div>
+		</div>
+	</div>
+</div>
+<div id="signup-failure" class="modal fade">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h4 class="modal-title">Signup Failed</h4>
+			</div>
+			<div class="modal-body">
+				<p>Sorry, but your signup did not succeed.</p>
+				<p id='failMessage'></p>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">Try Again</button>
+				<a type="button" class="btn btn-primary" href="/">Skip It</a>
+			</div>
+		</div>
+	</div>
+</div>
+<div id="login-dialog" class="modal fade">
+	<div class="modal-dialog">
+		<div class="modal-content modal-smaller">
+			<div class="modal-header">
+			<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+				<h4 class="modal-title">Login To Strog Entertainment</h4>
+			</div>
+			<div class="modal-body">
+				<p>Please enter your Strog Entertainment login information.</p>
+				<form
+					class="form-horizontal"
+					onsubmit="return loginSubmit.apply(this,[]);"
+				>
+					<fieldset>
+					<div class="form-group">
+						<div class="col-xs-8 inputGroupContainer">
+						<div class="input-group">
+							<span class="input-group-addon"><i class="glyphicon glyphicon-envelope"></i></span>
+							<input id='loginUserName' autocapitalize="off" name="userName" placeholder="Your user name" class="form-control" type="text" required>
+							</div>
+						</div>
+					</div>
+
+					<!-- Text input-->
+					<div class="form-group">
+						<div class="col-xs-8 inputGroupContainer">
+							<div class="input-group">
+								<span class="input-group-addon"><i class="glyphicon glyphicon-user"></i></span>
+								<input name="password" autocapitalize="off" placeholder="Your Password" class="form-control" type="password" required style="display:inline;">
+							</div>
+							<a href="javascript: forgot($('#loginUserName').val());" style="display:inline;">Forgot password?</a>
+						</div>
+					</div>
+
+					<!-- Button -->
+					<div class="form-group">
+						<label class="col-xs-4 control-label"></label>
+						<div class="col-xs-4">
+							<button type="submit" class="btn btn-info">
+							<span><i class="fa fa-refresh fa-spin hidden"></i></span>
+									Login Now
+							</button>
+						</div>
+					</div>
+
+					</fieldset>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
+<div id="login-success" class="modal fade">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h4 class="modal-title">Thanks for contacting us!</h4>
+			</div>
+			<div class="modal-body">
+				<p>We will get back to you shortly.</p>
+			</div>
+			<div class="modal-footer">
+				<a type="button" class="btn btn-primary" href="/">Continue</a>
+			</div>
+		</div>
+	</div>
+</div>
+<div id="login-failure" class="modal fade">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h4 class="modal-title">Login Failed</h4>
+			</div>
+			<div class="modal-body">
+				<p>Sorry, but your login did not succeed.</p>
+				<p id='failMessage'></p>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">Try Again</button>
+				<a type="button" class="btn btn-primary" href="/">Cancel</a>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="main">
+	<div class="container">
+		<div class="header clearfix">
+			<div class="pull-right">
+				<span class="nav userName"></span>
+			</div>
+			<nav>
+				<ul class="nav nav-pills pull-right">
+					<li role="presentation"><a data-toggle="modal" data-target="#signup-dialog">Signup</a></li>
+					<li role="presentation"><a data-toggle="modal" data-target="#login-dialog">Login</a></li>
+				</ul>
+			</nav>
+			<a class="logo" href="index.html"><img src="image/strogLogoGradients.png"></a>
+		</div>
+	</div>
+	<div class="container mainPage">
+		<div class="row">
+			<div class="col-md-12 shadowStoneFeature">
+				<img src="image/shadowStoneFeature.png">
+				<h4>Shadow Stone</h4>
+				<button href="/shadowStone/index.html">Play the Beta Now</button>
+				<div>Something New in the Dark...</div>
+			</div>
+		</div>
+		<div class="row">
+			<h2>Games</h2>
+		</div>
+		<div class="row gameRow">
+			<div class="col-xs-6 col-sm-4 gameBox">
+				<a class="gameFrame candyHop" href="/candyHop/index.html">
+					<img src="image/candyHopLogo.png">
+					<div class="btn-lg gameTitle slide-left delay0 textBlack">Candy Hop</div>
+					<!--a class="btn btn-info btn-lg gamePlayButton" href="/candyhop/index.html">Play</a> -->
+				</a>
+			</div>
+			<div class="col-xs-6 col-sm-4 gameBox">
+				<a class="gameFrame shadowStone" href="/shadowStone/index.html">
+					<img src="image/shadowStoneLogo.png">
+					<div class="btn-lg gameTitle slide-left delay1 fadedShadows">Shadow Stone</div>
+					<!--a class="btn btn-info btn-lg gamePlayButton" href="/shadowStone/index.html">Beta</a-->
+				</a>
+			</div>
+			<div class="col-xs-6 col-sm-4 gameBox">
+				<a class="gameFrame reactorRescue" href="/reactorRescue/index.html">
+					<img src="image/mover.png">
+					<div class="btn-lg gameTitle slide-left delay2 textReactorRescue">Reactor Rescue</div>
+					<!--a class="btn btn-info btn-lg gamePlayButton" href="/reactorRescue/index.html">Play</a-->
+				</a>
+			</div>
+		</div>
+	</div>
+</div>
+</body>
+</html>

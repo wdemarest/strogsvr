@@ -11,9 +11,42 @@
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+<style>
+	.spacer {
+		margin-left: 6px;
+	}
+</style>
 <script>
+function readCookie(name) {
+	let nameEQ = name + "=";
+	let ca = document.cookie.split(';');
+	for( let i = 0; i < ca.length; i++ ) {
+		let c = ca[i];
+		while( c.charAt(0) == ' ' ) c = c.substring(1, c.length);
+		if (c.indexOf(nameEQ) == 0) return unescape( c.substring(nameEQ.length, c.length) );
+	}
+	return null;
+}
+function logout() {
+	$.ajax({
+		url: '/logout',
+		method: 'POST',
+		contentType:"application/json; charset=utf-8",
+		data: {},
+		success: function() {
+			window.location = 'index.html';
+		},
+		error: function(jqXHR, textStatus) {
+			alert(textStatus);
+		}
+	});
+
+}
+function plugUserName() {
+	$('.userName').html( readCookie( 'userName' ) );
+}
 function signupSubmit() {
-	var self = this;
+	let self = this;
 
 	function enable(state) {
 		$(self).find('.form-control').prop('disabled', !state);
@@ -23,8 +56,8 @@ function signupSubmit() {
 
 	try {
 		enable(false);
-		var data = {}
-		var form = $(self).find('.form-control');
+		let data = {}
+		let form = $(self).find('.form-control');
 		$.each(form,function(index,value) {
 			data[value.name] = $(value).val();
 		});
@@ -36,7 +69,7 @@ function signupSubmit() {
 		}
 
 		function success(response) {
-			var r = typeof response == 'string' ? JSON.parse(response) : response;
+			let r = typeof response == 'string' ? JSON.parse(response) : response;
 			if( r.result == 'success' ) {
 				$(self).find('.fa-spin').toggleClass('hidden',false);
 				$('#signup-success').modal('show');
@@ -65,7 +98,7 @@ function signupSubmit() {
 
 
 function loginSubmit() {
-	var self = this;
+	let self = this;
 
 	function enable(state) {
 		$(self).find('.form-control').prop('disabled', !state);
@@ -75,8 +108,8 @@ function loginSubmit() {
 
 	try {
 		enable(false);
-		var data = {}
-		var form = $(self).find('.form-control');
+		let data = {}
+		let form = $(self).find('.form-control');
 		$.each(form,function(index,value) {
 			data[value.name] = $(value).val();
 		});
@@ -88,7 +121,7 @@ function loginSubmit() {
 		}
 
 		function success(response) {
-			var r = typeof response == 'string' ? JSON.parse(response) : response;
+			let r = typeof response == 'string' ? JSON.parse(response) : response;
 			if( r.result == 'success' ) {
 				window.location = 'index.html';
 				//$(self).find('.fa-spin').toggleClass('hidden',false);
@@ -138,6 +171,10 @@ function forgot(userName) {
 		}
 	});
 }
+
+$(document).ready( function() {
+	plugUserName();
+});
 
 </script>
 </head>
@@ -334,6 +371,11 @@ function forgot(userName) {
 		<h1>Strog Entertainment</h1>
 		<i class="fa-li fa fa-check-square-o"></i>
 	</div>
+	<div class="row" id="buttonLogin">
+		<a class="btn btn-info btn-md blue-bg spacer pull-right" data-toggle="modal" data-target="#login-dialog">Login</a>
+		<span class="spacer pull-right"></span>
+		<a class="btn btn-info btn-md blue-bg pull-right spacer" data-toggle="modal" data-target="#signup-dialog">Signup</a>
+	</div>
 	<div class="row">
 		<div class="col-md-12">
 			<p class="lead">Welcome to Strog Entertainment!</p>
@@ -342,13 +384,10 @@ function forgot(userName) {
 	<div class="row">
 		<div class="col-md-6">
 			<p>
-				Sign up to play our games, Reactor Rescue and Candy Hop!
-			</p>	
-			<a class="btn btn-info btn-md appsoma-blue-bg spacer" data-toggle="modal" data-target="#signup-dialog">Signup</a>
-			<p style='margin-top: 20px;'>
-				Login now to start playing!
+				<a class="btn btn-info btn-lg blue-bg spacer" href="/candyhop/index.html">Play Candy Hop</a>
+				<a class="btn btn-info btn-lg blue-bg spacer" href="/reactorRescue/index.html">Play Reactor Rescue</a>
+				<a class="btn btn-info btn-lg blue-bg spacer" href="/shadowStone/index.html">Play Shadow Stone</a>
 			</p>
-			<a class="btn btn-info btn-md appsoma-blue-bg spacer" data-toggle="modal" data-target="#login-dialog">Login</a>
 		</div>
 	</div>
 	<hr>

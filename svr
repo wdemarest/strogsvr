@@ -1,13 +1,15 @@
-if [ ! -f ~/.ssh/CandyHop.pem ]; then
-    echo "You must have a file ~/.ssh/CandyHop.pem that can access the server ubuntu@playcandyhop.com"
+if [ ! -f ~/.ssh/strog.pem ]; then
+    echo "You must have a file ~/.ssh/strog.pem that can access the server ubuntu@strog.com"
     echo "Please correct this and try again."
     exit 1
 fi
 
-if [ "$1" != "deploy" ] && [ "$1" != "stop" ] && [ "$1" != "start" ] && [ "$1" != "restart" ] && [ "$1" != "status" ] && [ "$1" != "log" ] && [ "$1" != "login" ] && [ "$1" != "fetch" ]
+export connect="ssh ubuntu@strog.com -i ~/.ssh/strog.pem"
+
+if [ "$1" != "deploy" ] && [ "$1" != "stop" ] && [ "$1" != "start" ] && [ "$1" != "restart" ] && [ "$1" != "status" ] && [ "$1" != "log" ] && [ "$1" != "login" ] && [ "$1" != "fetch" ] && [ "$1" != "dev" ]
 then
 echo "svr takes one of the following parameters:"
-echo "* deploy [strogsrv|candyhop|reactorRescue]  - deploys to and overwrites server"
+echo "* deploy [strogsrv|candyhop|reactorRescue|shadowStone]  - deploys to and overwrites server"
 echo "* start    - starts the server"
 echo "* restart  - re-starts the server"
 echo "* stop     - stops the server at"
@@ -15,6 +17,9 @@ echo "* status   - shows the status of the running server"
 echo "* log      - emits the logfile from the server"
 echo "* login    - shell to the server"
 echo "* fetch    - fetch server-only files into the ./archive directory, as backups"
+echo "* dev      - starts the server on your dev machine"
+echo ""
+echo "Remote erver must already have installed: nodejs, git, supervisor."
 exit 1
 fi
 
@@ -26,49 +31,55 @@ fi
 
 if [ "$1" == "deploy" ] && [ "$2" == "strogsvr" ]
 then
-echo Deploying from github.com/wdemarest/strogsvr to playcandyhop.com
-ssh ubuntu@playcandyhop.com -i ~/.ssh/CandyHop.pem "cd ~/strogsvr ; git fetch --all ; git reset --hard origin/master"
+echo Deploying from github.com/wdemarest/strogsvr to strog.com
+$connect "cd ~/strogsvr ; git fetch --all ; git reset --hard origin/master"
 fi
 
 if [ "$1" == "deploy" ] && [ "$2" == "candyhop" ]
 then
-echo Deploying from github.com/wdemarest/candyhop to playcandyhop.com
-ssh ubuntu@playcandyhop.com -i ~/.ssh/CandyHop.pem "cd ~/candyhop ; git fetch --all ; git reset --hard origin/master"
+echo Deploying from github.com/wdemarest/candyhop to strog.com
+$connect "cd ~/candyhop ; git fetch --all ; git reset --hard origin/master"
 fi
 
 if [ "$1" == "deploy" ] && [ "$2" == "reactorRescue" ]
 then
-echo Deploying from github.com/wdemarest/reactorRescue to playcandyhop.com
-ssh ubuntu@playcandyhop.com -i ~/.ssh/CandyHop.pem "cd ~/reactorRescue ; git fetch --all ; git reset --hard origin/master"
+echo Deploying from github.com/wdemarest/reactorRescue to strog.com
+$connect "cd ~/reactorRescue ; git fetch --all ; git reset --hard origin/master"
+fi
+
+if [ "$1" == "deploy" ] && [ "$2" == "shadowStone" ]
+then
+echo Deploying from github.com/wdemarest/shadowStone to strog.com
+$connect "cd ~/shadowStone ; git fetch --all ; git reset --hard origin/master"
 fi
 
 if [ "$1" == "stop" ] || [ "$1" == "restart" ]
 then
-echo Stopping strogsvr on playcandyhop.com
-ssh ubuntu@playcandyhop.com -i ~/.ssh/CandyHop.pem "pkill nodejs"
-ssh ubuntu@playcandyhop.com -i ~/.ssh/CandyHop.pem "ps ax | grep n[o]dejs.*server.js"
+echo Stopping strogsvr on strog.com
+$connect "pkill nodejs"
+$connect "ps ax | grep n[o]dejs.*server.js"
 fi
 
 if [ "$1" == "start" ] || [ "$1" == "restart" ]
 then
-echo Starting strogsvr on playcandyhop.com
-ssh ubuntu@playcandyhop.com -i ~/.ssh/CandyHop.pem "cd ~/strogsvr ; nohup nodejs /usr/local/bin/supervisor -x nodejs -n error ./server.js >> ~/strogsvr/strogsvr.log 2>&1 &"
+echo Starting strogsvr on strog.com
+$connect "cd ~/strogsvr ; nohup nodejs /usr/local/bin/supervisor -x nodejs -n error ./server.js >> ~/strogsvr/strogsvr.log 2>&1 &"
 fi
 
 if [ "$1" == "status" ] || [ "$1" == "start" ] || [ "$1" == "restart" ]
 then
-echo Status of strogsvr on playcandyhop.com
-ssh ubuntu@playcandyhop.com -i ~/.ssh/CandyHop.pem "ps ax | grep n[o]dejs.*server.js"
+echo Status of strogsvr on strog.com
+$connect "ps ax | grep n[o]dejs.*server.js"
 fi
 
 if [ "$1" == "log" ]
 then
-ssh ubuntu@playcandyhop.com -i ~/.ssh/CandyHop.pem "tail -f -n 100 ~/strogsvr/strogsvr.log"
+$connect "tail -f -n 100 ~/strogsvr/strogsvr.log"
 fi
 
 if [ "$1" == "login" ]
 then
-ssh ubuntu@playcandyhop.com -i ~/.ssh/CandyHop.pem
+$connect
 fi
 
 if [ "$1" == "fetch" ]
@@ -84,11 +95,20 @@ fi
 mkdir -p $ARCHIVE
 mkdir -p $ARCHIVE/payments
 mkdir -p $ARCHIVE/chpack
-scp -i ~/.ssh/CandyHop.pem ubuntu@playcandyhop.com:strogsvr/config.json ./$ARCHIVE
-scp -i ~/.ssh/CandyHop.pem ubuntu@playcandyhop.com:strogsvr/credentials.json ./$ARCHIVE
-scp -i ~/.ssh/CandyHop.pem ubuntu@playcandyhop.com:strogsvr/userdata.json ./$ARCHIVE
-scp -i ~/.ssh/CandyHop.pem ubuntu@playcandyhop.com:strogsvr/codes.json ./$ARCHIVE
-scp -i ~/.ssh/CandyHop.pem ubuntu@playcandyhop.com:strogsvr/payments/* ./$ARCHIVE/payments
-scp -i ~/.ssh/CandyHop.pem ubuntu@playcandyhop.com:strogsvr/chpack/* ./$ARCHIVE/chpack
+scp -i ~/.ssh/strog.pem ubuntu@strog.com:strogsvr/config.json ./$ARCHIVE
+scp -i ~/.ssh/strog.pem ubuntu@strog.com:strogsvr/credentials.json ./$ARCHIVE
+scp -i ~/.ssh/strog.pem ubuntu@strog.com:strogsvr/userdata.json ./$ARCHIVE
+scp -i ~/.ssh/strog.pem ubuntu@strog.com:strogsvr/codes.json ./$ARCHIVE
+scp -i ~/.ssh/strog.pem ubuntu@strog.com:strogsvr/payments/* ./$ARCHIVE/payments
+scp -i ~/.ssh/strog.pem ubuntu@strog.com:strogsvr/chpack/* ./$ARCHIVE/chpack
 fi
 
+if [ "$1" == "dev" ]
+then
+echo Starting strogsvr on for developer
+if [[ $(redis-cli ping) = PONG ]]; then
+nodemon server.js
+exit
+fi
+echo Please start Redis with redis-server
+fi
