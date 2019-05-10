@@ -66,6 +66,18 @@
 		req.session.isTemp    = account.isTemp || 0;
 	}
 
+	Account.createTemp = function() {
+		let accountId = 'temp-'+Math.uid();
+		let account = new Account( accountId, {
+			userName: 'guest'+Math.unsafeRandInt(1000),
+			userEmail: '',
+			isAdmin: false,
+			isTemp: true
+		});
+		console.log( 'Created temp account',account );
+		return account;
+	}
+
 	Account.login = async function(req,res) {
 		let debug = true;
 		let userName = req.body.userName;

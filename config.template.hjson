@@ -1,15 +1,21 @@
 {
 	// Use this file as a basis to create config.json
 	// Remove all comments from this file, since they are illegal JSON.
-	"port": 8080,
+	"port": 8080,				// User-facing port
 	"portExternal": 80,			// Used when PayPal tries to return to candyhop
 	"sitePath": "site",			// Relative path where on the local machine to find index.html
-	"siteUrl": "http://playcandyhop.com",	// where users can go to play the game
+	"siteUrl": "http://strog.com",	// where users can go to play the game
+	"mongoUser": "??",			// User name to login to Mongo
+	"mongoPwd": "??",			// Password to logint to Mongo
+	"mongoUrl": "??",			// The mongo 4 compatible url. something like mongodb+srv://tld.domain.com/dbName?retryWrites=true
+	"dbName": "",				// Name of the mongo database
+	"redisSecret": "",			// Redis secret
+	"redisName": "",			// Name of the redis database
+	"redisDomain": "",			// Domain of the redis db. Often localhost
+	"redisPort": 6379,			// Port for redis. 6379 is default
 	"adminPassword": "??",		// Used when you want to login as  'admin'
 	"contactEmail": "??",		// Used by Mandrill
 	"mandrillApiKey": "",		// Used by Mandrill
-	"credentialsFile": "credentials.json",
-	"userDataFile": "userdata.json",
 	"purchaseCode": "??",		// Code to bypass having to pay
 	"paymentMode": "paypal_sandbox",
     "paypal_sandbox": {

@@ -30,15 +30,15 @@
 						this.client = null;
 						once = false;
 						// We do this because, during testing, we can just ignore the session cache.
-						resolve();
+						resolve(this.client);
 					}
 				});
 			});
 		}
 
-		makeSession() {
+		create() {
 			if( !this.client ) {
-				return;
+				return null;
 			}
 			return Session({
 				secret: this.secret,

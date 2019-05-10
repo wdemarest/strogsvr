@@ -19,7 +19,7 @@ echo "* login    - shell to the server"
 echo "* fetch    - fetch server-only files into the ./archive directory, as backups"
 echo "* dev      - starts the server on your dev machine"
 echo ""
-echo "Remote erver must already have installed: nodejs, git, supervisor."
+echo "See the README.md file for server setup details."
 exit 1
 fi
 
@@ -32,25 +32,25 @@ fi
 if [ "$1" == "deploy" ] && [ "$2" == "strogsvr" ]
 then
 echo Deploying from github.com/wdemarest/strogsvr to strog.com
-$connect "cd ~/strogsvr ; git fetch --all ; git reset --hard origin/master"
+$connect "cd ~/strogsvr ; git fetch --all ; git reset --hard origin/master ; npm install"
 fi
 
 if [ "$1" == "deploy" ] && [ "$2" == "candyhop" ]
 then
 echo Deploying from github.com/wdemarest/candyhop to strog.com
-$connect "cd ~/candyhop ; git fetch --all ; git reset --hard origin/master"
+$connect "cd ~/candyhop ; git fetch --all ; git reset --hard origin/master ; npm install"
 fi
 
 if [ "$1" == "deploy" ] && [ "$2" == "reactorRescue" ]
 then
 echo Deploying from github.com/wdemarest/reactorRescue to strog.com
-$connect "cd ~/reactorRescue ; git fetch --all ; git reset --hard origin/master"
+$connect "cd ~/reactorRescue ; git fetch --all ; git reset --hard origin/master ; npm install"
 fi
 
 if [ "$1" == "deploy" ] && [ "$2" == "shadowStone" ]
 then
 echo Deploying from github.com/wdemarest/shadowStone to strog.com
-$connect "cd ~/shadowStone ; git fetch --all ; git reset --hard origin/master"
+$connect "cd ~/shadowStone ; git fetch --all ; git reset --hard origin/master ; npm install"
 fi
 
 if [ "$1" == "stop" ] || [ "$1" == "restart" ]
@@ -105,7 +105,7 @@ fi
 
 if [ "$1" == "dev" ]
 then
-echo Starting strogsvr on for developer
+echo Starting strogsvr for developer
 if [[ $(redis-cli ping) = PONG ]]; then
 nodemon server.js
 exit

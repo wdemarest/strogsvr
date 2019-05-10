@@ -1,3 +1,15 @@
+# TO SETUP YOUR DEV ENVIRONMENT
+
+You'll need NodeJS v12, npm, git, nodemon (global install), an editor like Sublime 3
+
+Sublime Hjson highlighting is a plus:
+1. Install "Package Control" in Sublime: https://packagecontrol.io/installation
+2. Paste that text into Sublime console: Ctrl+Backtick then paste
+3. Restart Sublime. Then Sublime/Preferences/Package Control; type "Package Install" and choose Hjson
+
+
+
+
 # TO SETUP A NEW SERVER
 
 1. If you need to generate a keypair (typically you'll let AWS do this for you)
@@ -25,7 +37,7 @@ chmod 400 ~/.ssh/jeesty.pem
 From local osx terminal:
 ```bash
 cd ~/.ssh
-pico CandyHop.pem
+pico strog.pem
 copy/paste the private key you used to boot the AWS machine into that file
 ctrl-x  y  <enter>
 ```
@@ -50,16 +62,31 @@ cd ~
 git clone https://github.com/wdemarest/strogsvr
 git clone https://github.com/wdemarest/candyhop
 git clone https://github.com/wdemarest/reactorRescue
+git clone https://github.com/wdemarest/shadowStone
+```
+
+6.2 Cache passwords for each
+```bash
+cd ~/strogsvr
+git config credential.helper store ; git pull
+cd ~/candyhop
+git config credential.helper store ; git pull
+cs ~/reactorRescue
+git config credential.helper store ; git pull
+cs ~/shadowStone
+git config credential.helper store ; git pull
 ```
 
 6.5 Install packages in each
 ```bash
 cd ~/strogsvr
-sudo npm install
+npm install
 cd ~/candyhop
-sudo npm install
+npm install
 cs ~/reactorRescue
-sudo npm install
+npm install
+cs ~/shadowStone
+npm install
 ```
 
 7. Redirect port 8080 to port 80. We don't want to run the server as root, but ports below 1024 are root only, so this is the safe workaround.
@@ -88,12 +115,12 @@ then launch your browser and visit the appropriate IP address on port 80.
 # Running the Server
 
 While logged in to the koding.com server, or any machine that has its public key on
-the playcandyhop.com server, run:
+the strog.com server, run:
 
-    ./sg [ deploy app | stop | start | restart | status | log | login | fetch]
-    deploy app can be strogsvr, candyhop, or reactorRescue
+    ./svr [ deploy app | stop | start | restart | status | log | login | fetch | dev ]
+    deploy app can be strogsvr, candyhop, reactorRescue, shadowStone
 
-* deploy - forces the playcandyhop.com machine to conform to the git master
+* deploy - forces the strog.com machine to conform to the git master
 * stop - stops the server
 * start - starts the server
 * restart - shuts down any running server and starts it up fresh, with auto-restarting
@@ -101,16 +128,28 @@ the playcandyhop.com server, run:
 * log - shows the server's log file
 * login - connects you to the server shell
 * fetch - copies all important server files to local archive
+* dev - launches the server on your dev machine
+
+# Server Maintenance
+From time to time you must make sure that Ubuntu has all needed packages updated for security.
+From /strogsvr run:
+```
+sudo apt-get update
+sudo apt-get upgrade
+sudo apt-get install curl python-software-properties
+curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash -
+sudo apt-get install -y nodejs
+```
 
 # To sign players up
 
-1. Visit http://playcandyhop.com
+1. Visit http://strog.com
 2. Login with the username "admin" and the admin password
-3. http://playcandyhop.com/signup.html
+3. http://strog.com/signup.html
 
 # Public Key
 
-For reference, here is the public key to connect using CandyHop.pem:
+For reference, here is the public key to connect using strog.pem:
 ```
-ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCdzhJlKt5CPCB0oX5Jt8ctjgr2Scdw0ARKb4c6hW3rqHzGU8K7q+W4ulVIGJzrCB5o1lVvcfzEPu37rdon1VngZMHAhEtf5SyNxIbOBqXrCpge2UvMUDW8fxOez1O+pVotx4IYoC1jzwfJEWD6LFmGUuKVxTxbkUCNmPiosECGBMEHvrsOWsFL9vUXhp/WrnMPP/KGCMN6Wm0W1kxlv8ISp6tQ8Zi3u4by0C+5FSKW7Ta5Z9EzdxKRMVyPw0Kw3Y9QiLYEoSkM5B3UcXtK+eCL2AR8nE/ul/kRdG/QfDrW3Bf+QDX5MClCVXtk0qIn7q/U65kr4embszEwOBzB8BAB CandyHop
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCdzhJlKt5CPCB0oX5Jt8ctjgr2Scdw0ARKb4c6hW3rqHzGU8K7q+W4ulVIGJzrCB5o1lVvcfzEPu37rdon1VngZMHAhEtf5SyNxIbOBqXrCpge2UvMUDW8fxOez1O+pVotx4IYoC1jzwfJEWD6LFmGUuKVxTxbkUCNmPiosECGBMEHvrsOWsFL9vUXhp/WrnMPP/KGCMN6Wm0W1kxlv8ISp6tQ8Zi3u4by0C+5FSKW7Ta5Z9EzdxKRMVyPw0Kw3Y9QiLYEoSkM5B3UcXtK+eCL2AR8nE/ul/kRdG/QfDrW3Bf+QDX5MClCVXtk0qIn7q/U65kr4embszEwOBzB8BAB strog
 ```

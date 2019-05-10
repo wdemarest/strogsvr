@@ -11,6 +11,7 @@ let DebugProxy    = require('./debugProxy.js');
 
 let StorageMongo  = require('./storageMongo.js');
 let Serial        = require('./serial.js');
+let Config        = require('./config.js');
 
 // Plugins
 let Account       = require('./account.js');
@@ -32,11 +33,8 @@ var Debug = new DebugProxy({
 });
 
 let app = express();
-let storage = new StorageMongo(new Serial);
-let config;
 
-
-function serverStart(port,sitePath,session) {
+function serverStart(port,sitePath,localUrl,session,storage) {
 	port = port || 80;
 	sitePath = sitePath || '.';
 	app.accessNoAuthRequired = {};
@@ -45,7 +43,7 @@ function serverStart(port,sitePath,session) {
 	console.log("\n\n"+(new Date()).toISOString()+" Serving "+sitePath+" on "+port);
 
 	let wsProxy = Proxy({
-		target: config.shadowStoneLocalUrl
+		target: localUrl
 	});
 
 	app.use( '/shadowStone', wsProxy );
@@ -70,16 +68,9 @@ function serverStart(port,sitePath,session) {
 
 	app.use( function( req, res, next ) {
 		if( !req.cookies.accountId || req.cookies.accountId=='undefined' ) {
-			let accountId = 'temp-'+Math.uid();
-			let account = new Account( accountId, {
-				userName: 'guest'+Math.unsafeRandInt(1000),
-				userEmail: '',
-				isAdmin: false,
-				isTemp: true
-			});
-			console.log( 'Created temp account',account );
-			Account.loginActivate(req,res,account);
+			let account = Account.createTemp();
 			storage.save( account );
+			Account.loginActivate(req,res,account);
 		}
 		return next();
 	});
@@ -117,8 +108,10 @@ let serverShutdown = function() {
 
 async function main() {
 	console.log('StrogSvr at ',process.cwd());
-	config = JSON.parse( fs.readFileSync("config.json",'utf8') || "" );
+	let config = new Config('STROG_CONFIG_ID');
+	await config.load( 'config.$1.secret.hjson' );
 
+	let storage = new StorageMongo(new Serial);
 	await storage.open(config.mongoUrl,config.mongoUser,config.mongoPwd,config.dbName);
 
 	let redisSessionMaker = new RedisSession({
@@ -128,6 +121,7 @@ async function main() {
 		domain: config.redisDomain
 	});
 	await redisSessionMaker.open();
+	let session = redisSessionMaker.create();
 
 	let appContext = {
 		config:  config,
@@ -135,7 +129,7 @@ async function main() {
 	};
 	plugins.forEach( plugin => plugin.onInit ? plugin.onInit(appContext) : 0 );
 
-	serverStart( config.port, config.sitePath, redisSessionMaker.makeSession() );
+	serverStart( config.port, config.sitePath, config.shadowStoneLocalUrl, session, storage );
 }
 
 
