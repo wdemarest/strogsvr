@@ -56,6 +56,16 @@ sudo apt-get install npm
 sudo npm install -g supervisor
 ```
 
+5.5 Install Redis
+```bash
+sudo apt-get install redis-server
+sudo systemctl enable redis-server.service
+sudo vim /etc/redis/redis.conf
+Consider these values: maxmemory 256mb
+Consider these values: maxmemory-policy allkeys-lru
+sudo systemctl restart redis-server.service
+```
+
 6. Clone all repos
 ```bash
 cd ~

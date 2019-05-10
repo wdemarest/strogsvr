@@ -6,18 +6,19 @@ fi
 
 export connect="ssh ubuntu@strog.com -i ~/.ssh/strog.pem"
 
-if [ "$1" != "deploy" ] && [ "$1" != "stop" ] && [ "$1" != "start" ] && [ "$1" != "restart" ] && [ "$1" != "status" ] && [ "$1" != "log" ] && [ "$1" != "login" ] && [ "$1" != "fetch" ] && [ "$1" != "dev" ]
+if [ "$1" != "deploy" ] && [ "$1" != "config" ] && [ "$1" != "stop" ] && [ "$1" != "start" ] && [ "$1" != "restart" ] && [ "$1" != "status" ] && [ "$1" != "log" ] && [ "$1" != "login" ] && [ "$1" != "fetch" ] && [ "$1" != "dev" ]
 then
 echo "svr takes one of the following parameters:"
 echo "* deploy [strogsrv|candyhop|reactorRescue|shadowStone]  - deploys to and overwrites server"
-echo "* start    - starts the server"
-echo "* restart  - re-starts the server"
-echo "* stop     - stops the server at"
-echo "* status   - shows the status of the running server"
-echo "* log      - emits the logfile from the server"
+echo "* config [strogsrv|shadowStone]  - copies config.production.secret.hjson to server"
+echo "* log    [strogsvr|shadowStone]  - emits the logfile from the server"
+echo "* start    - starts the servers"
+echo "* restart  - re-starts the servers"
+echo "* stop     - stops the servers"
+echo "* status   - shows the status of the running servers"
 echo "* login    - shell to the server"
 echo "* fetch    - fetch server-only files into the ./archive directory, as backups"
-echo "* dev      - starts the server on your dev machine"
+echo "* dev      - starts strogsvr on your dev machine"
 echo ""
 echo "See the README.md file for server setup details."
 exit 1
@@ -53,28 +54,49 @@ echo Deploying from github.com/wdemarest/shadowStone to strog.com
 $connect "cd ~/shadowStone ; git fetch --all ; git reset --hard origin/master ; npm install"
 fi
 
+if [ "$1" == "config" ] && [ "$2" == "strogsvr" ]
+then
+echo Pushing strogsvr config to strog.com
+scp -i ~/.ssh/strog.pem ./config.production.secret.hjson ubuntu@strog.com:strogsvr
+fi
+
+if [ "$1" == "config" ] && [ "$2" == "shadowStone" ]
+then
+echo Pushing ../shadowStone config to strog.com
+scp -i ~/.ssh/strog.pem ../shadowStone/config.production.secret.hjson ubuntu@strog.com:shadowStone
+fi
+
 if [ "$1" == "stop" ] || [ "$1" == "restart" ]
 then
 echo Stopping strogsvr on strog.com
-$connect "pkill nodejs"
-$connect "ps ax | grep n[o]dejs.*server.js"
+$connect "pkill node"
+$connect "ps ax | grep n[o]de.*server.js"
 fi
 
 if [ "$1" == "start" ] || [ "$1" == "restart" ]
 then
 echo Starting strogsvr on strog.com
-$connect "cd ~/strogsvr ; nohup nodejs /usr/local/bin/supervisor -x nodejs -n error ./server.js >> ~/strogsvr/strogsvr.log 2>&1 &"
+$connect "cd ~/strogsvr ; export STROG_CONFIG_ID=production ; nohup node /usr/local/bin/supervisor -x node -n error ./server.js >> ~/strogsvr/strogsvr.log 2>&1 &"
+echo Starting shadowStone on strog.com
+$connect "cd ~/shadowStone ; export STROG_CONFIG_ID=production ; nohup node /usr/local/bin/supervisor -x node -n error ./app.js >> ~/strogsvr/shadowStone.log 2>&1 &"
 fi
 
 if [ "$1" == "status" ] || [ "$1" == "start" ] || [ "$1" == "restart" ]
 then
 echo Status of strogsvr on strog.com
-$connect "ps ax | grep n[o]dejs.*server.js"
+$connect "ps ax | grep n[o]de.*server.js"
+echo Status of shadowStone on strog.com
+$connect "ps ax | grep n[o]de.*app.js"
 fi
 
-if [ "$1" == "log" ]
+if [ "$1" == "log" ] && [ "$2" == "strogsvr" ]
 then
 $connect "tail -f -n 100 ~/strogsvr/strogsvr.log"
+fi
+
+if [ "$1" == "log" ] && [ "$2" == "shadowStone" ]
+then
+$connect "tail -f -n 100 ~/shadowStone/shadowStone.log"
 fi
 
 if [ "$1" == "login" ]
