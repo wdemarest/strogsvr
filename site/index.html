@@ -12,6 +12,7 @@
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+
 <style>
 	/* Space out content a bit */
 body {
@@ -75,6 +76,26 @@ a.logo:hover {
 	background-color: black;
 }
 
+.shadowStoneFrame {
+	border: 0px;
+	width: 36vw;
+	height: 40vw;
+	background-color: black;
+	overflow: hidden;
+	margin-left: 6vw;
+}
+
+.shadowStoneFrame iframe{
+	border: 0px;
+	width: 90vw;
+	height: 40vw;
+	background-color: black;
+	position: relative;
+    left: -26vw;
+    top: -6vw;
+    zoom: 120%;
+}
+
 .shadowStoneFeature img {
 	width: 70%;
 }
@@ -123,7 +144,7 @@ a.logo:hover {
 	transition: all 0.2s ease-in;
 }
 
-.shadowStoneFeature div {
+.shadowStoneFeature h5 {
 	position: absolute;
 	bottom: 3%;
 	left: 7%;
@@ -704,10 +725,14 @@ $(document).ready( main );
 	<div class="container mainPage">
 		<div class="row">
 			<div class="col-md-12 shadowStoneFeature">
-				<img src="image/shadowStoneFeature.png">
+				<img class='hidden' src="image/shadowStoneFeature.png">
 				<h4>Shadow Stone</h4>
 				<a href="/shadowStone/index.html">Play the Beta Now</a>
-				<div>Something New in the Dark...</div>
+				<div class="shadowStoneFrame">
+					<iframe src="../../shadowStone/replay.html?timeline=shortgame">
+					</iframe>
+				</div>
+				<h5>Something New in the Dark...</h5>
 			</div>
 		</div>
 		<div class="row">
