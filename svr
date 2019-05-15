@@ -78,7 +78,7 @@ then
 echo Starting strogsvr on strog.com
 $connect "cd ~/strogsvr ; export STROG_CONFIG_ID=production ; nohup node /usr/local/bin/supervisor -x node -n error ./server.js >> ~/strogsvr/strogsvr.log 2>&1 &"
 echo Starting shadowStone on strog.com
-$connect "cd ~/shadowStone ; export STROG_CONFIG_ID=production ; nohup node /usr/local/bin/supervisor -x node -n error ./app.js >> ~/strogsvr/shadowStone.log 2>&1 &"
+$connect "cd ~/shadowStone ; export STROG_CONFIG_ID=production ; nohup node /usr/local/bin/supervisor -x node -n error ./app.js >> ~/shadowStone/shadowStone.log 2>&1 &"
 fi
 
 if [ "$1" == "status" ] || [ "$1" == "start" ] || [ "$1" == "restart" ]
