@@ -36,15 +36,17 @@
 		app.get(  "/recordsRr",  ReactorRescue.recordsGet );
 	}
 
+	ReactorRescue.gameDataBlank = { progress: [] }
+
 	ReactorRescue.recordsGet = async function(req,res) {
 		if( !ReactorRescue.recordsCache ) {
-			let gameDataList = await storage.loadAll( 'ReactorRescue' );
+			let gameDataList = await storage.loadAll( 'ReactorRescue' ) || {};
 
 			let i;
 			let best = [];
 			for( let key in gameDataList ) {
-				let gameData = gameDataList[key] || {progress:null};
-				let progress = gameData.progress || [];
+				let gameData = gameDataList[key] || ReactorRescue.gameDataBlank;
+				let progress = gameData.progress || ReactorRescue.gameDataBlank.progress;
 				for( let i=0 ; i<progress.length ; ++i ) {
 					if( best[i] === undefined || progress[i].time < best[i].time ) {
 						best[i] = best[i] || {};
@@ -62,7 +64,8 @@
 	ReactorRescue.progressGet = async function(req,res) {
 		let accountId = req.session.accountId;
 		let gameData = await storage.load( 'ReactorRescue', accountId );
-		res.send( gameData.progress || [] );
+		let result = ( gameData && gameData.progress ) ? gameData.progress : ReactorRescue.gameDataBlank.progress;
+		res.send( result );
 	}
 
 	ReactorRescue.progressPost = async function(req,res) {
@@ -71,6 +74,7 @@
 		if( !accountId ) {
 			return res.send( { result: 'failure', message: 'no account', detail: req.body } );
 		}
+		let userName = req.session.userName;
 
 		let levelId = req.body.level;
 		if( levelId === undefined || levelId === null ) {
@@ -79,12 +83,12 @@
 
 		let timeFail = 9999;
 		let timeNew = req.body.time || timeFail;
-		let gameData = await storage.load( 'ReactorRescue', accountId );
+		let gameData = await storage.load( 'ReactorRescue', accountId ) || new ReactorRescue(accountId,{userName:userName});
 
-		gameData.progress = gameData.progress || [];
+		gameData.progress = gameData.progress || ReactorRescue.gameDataBlank.progress;
 		gameData.progress[levelId] = gameData.progress[levelId] || {};
 
-		let timeBest = gameData.progress[levelId];
+		let timeBest = gameData.progress[levelId] ? (gameData.progress[levelId].time || 0) : 0;
 		if( !timeBest || timeNew < timeBest ) {
 			// Save the best time.
 			ReactorRescue.recordsCache = null;
