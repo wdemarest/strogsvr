@@ -42,7 +42,8 @@
 
 			let i;
 			let best = [];
-			for( let gameData of gameDataList ) {
+			for( let key in gameDataList ) {
+				let gameData = gameDataList[key] || {progress:null};
 				let progress = gameData.progress || [];
 				for( let i=0 ; i<progress.length ; ++i ) {
 					if( best[i] === undefined || progress[i].time < best[i].time ) {
