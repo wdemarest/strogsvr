@@ -1,4 +1,4 @@
-if [ ! -f ~/.ssh/strog.pem ]; then
+if [ "$1" != "dev" ] && [ ! -f ~/.ssh/strog.pem ]; then
     echo "You must have a file ~/.ssh/strog.pem that can access the server ubuntu@strog.com"
     echo "Please correct this and try again."
     exit 1
