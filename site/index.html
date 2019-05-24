@@ -182,11 +182,11 @@ a.logo:hover {
 }
 
 .candyHop {
-	background-image: linear-gradient( rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7) ), url("image/waterBackgroundSmall.jpg");
+	background-image: linear-gradient( rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5) ), url("image/waterBackgroundSmall.jpg");
 }
 
 .candyHop div {
-    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #777, 1px 1px 0 #777;
+    text-shadow: -1px -1px 0 #444, 1px -1px 0 #444, -1px 1px 0 #bbb, 1px 1px 0 #bbb;
 }
 
 .candyHop img {
@@ -195,6 +195,7 @@ a.logo:hover {
     margin-top: -13%;
     display: block;
     position: absolute;
+    filter: grayscale(5%);
 }
 
 .shadowStone {
@@ -203,8 +204,8 @@ a.logo:hover {
 }
 
 .shadowStone img {
-	width: 64%;
-	margin-left: 8%;
+	width: 68%;
+	margin-left: 6%;
 	margin-top: 6%;
 	display: block;
 	position: absolute;
@@ -335,6 +336,11 @@ nav a {
 .ctr {
 	float: none;
 	margin: auto;
+}
+
+.shadowStoneText {
+	font-size: 3.5vw;
+    margin-top: 75%;
 }
 </style>
 
@@ -749,7 +755,7 @@ $(document).ready( main );
 			<div class="col-xs-6 col-sm-4 gameBox">
 				<a class="gameFrame shadowStone" href="/shadowStone/index.html">
 					<img src="image/shadowStoneLogo.png">
-					<div class="btn-lg gameTitle slide-left delay1 fadedShadows">Shadow Stone</div>
+					<div class="btn-lg gameTitle slide-left delay1 fadedShadows shadowStoneText" >Shadow Stone</div>
 					<!--a class="btn btn-info btn-lg gamePlayButton" href="/shadowStone/index.html">Beta</a-->
 				</a>
 			</div>

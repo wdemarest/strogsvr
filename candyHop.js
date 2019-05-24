@@ -18,6 +18,16 @@
 			this.progress   = [];
 			this.pack       = [];
 		}
+		get scoreBlank() {
+			return {points: 0, stars: 0, tries: 0};
+		}
+		setScore(levelId,points,stars) {
+			let score    = this.progress[levelId] || this.scoreBlank;
+			score.points = Math.max( score.points, points || 0 );
+			score.stars  = Math.max( score.stars, stars || 0 );
+			score.tries  = (score.tries||0) + 1;
+			this.progress[levelId] = score;
+		}
 	}
 
 	CandyHop.onInit = function(_context) {
@@ -38,8 +48,8 @@
 
 	CandyHop.progressGet = async function(req,res) {
 		let accountId = req.session.accountId;
-		let gameData = await storage.load( 'CandyHop', accountId );
-		res.send( gameData.progress || [] );
+		let gameData = await storage.load( 'CandyHop', accountId ) || new CandyHop(accountId);
+		res.send( gameData ? (gameData.progress || []) : [] );
 	}
 
 	CandyHop.progressPost = async function(req,res) {
@@ -53,23 +63,12 @@
 			return res.send( { result: 'failure', message: 'no level specified', detail: req.body } );
 		}
 
-		let scoreBlank = ()=>({points: 0, stars: 0, tries: 0});
-		let points     = req.body.points || 0;
-		let stars      = req.body.stars || 0; 
-
-		let gameData   = await storage.load( 'CandyHop', accountId ) || [];
-		let score      = gameData.progress[levelId] || scoreBlank();
-
-		// Save this level's best score
-		Object.assign( gameData.progress[levelId], {
-			points: Math.max(score.points || 0, points),
-			stars: Math.max(score.stars || 0, stars),
-			tries: (score.tries || 0) + 1
-		});
+		let gameData = await storage.load( 'CandyHop', accountId ) || new CandyHop(accountId);
+		gameData.setScore( levelId, req.body.points, req.body.stars );
 
 		// Open up the next level for play
-		if( stars > 0 && (gameData.progress[levelId+1] === undefined || gameData.progress[levelId+1] === null) ) {
-			gameData.progress[levelId+1] = scoreBlank();
+		if( (req.body.stars||0) > 0 && (gameData.progress[levelId+1] === undefined || gameData.progress[levelId+1] === null) ) {
+			gameData.progress[levelId+1] = this.scoreBlank;
 		}
 
 		storage.save( gameData );
@@ -97,7 +96,7 @@
 
 	CandyHop.packGet = async function(req,res) {
 		let accountId = req.session.accountId;
-		let gameData  = await storage.load( 'CandyHop', accountId );
+		let gameData  = await storage.load( 'CandyHop', accountId ) || new CandyHop(accountId);
 		res.send( gameData.pack );
 	}
 
@@ -118,7 +117,7 @@
 			return res.send( { result: 'failure', message: 'bad layout format', detail: req.body } );
 		}
 
-		let gameData = await storage.load( 'CandyHop', accountId );
+		let gameData = await storage.load( 'CandyHop', accountId ) || new CandyHop(accountId);
 		gameData.pack[levelId] = new CandyHopLevel( levelId, gamedata.pack[levelId] || {} );
 		storage.save(gameData);
 		return res.send( { result: 'success' } );
