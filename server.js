@@ -69,7 +69,7 @@ function serverStart(port,sitePath,localUrl,session,storage) {
 	app.use( function( req, res, next ) {
 		if( !req.cookies.accountId || req.cookies.accountId=='undefined' ) {
 			let ip = req.connection.remoteAddress;
-			console.log('New temp account requested for IP', ip);
+			console.log('New temp account requested for IP', ip, 'User-Agent', req.headers['user-agent']);
 			let account = Account.createTemp();
 			storage.save( account );
 			Account.loginActivate(req,res,account);
