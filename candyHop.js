@@ -113,12 +113,12 @@
 			return res.send( { result: 'failure', message: 'no level specified', detail: req.body } );
 		}
 
-		if( !level || !level.name || !level.map ) {
+		if( !level || !level.name || !level.map || level.map.length < 1 ) {
 			return res.send( { result: 'failure', message: 'bad layout format', detail: req.body } );
 		}
 
 		let gameData = await storage.load( 'CandyHop', accountId ) || new CandyHop(accountId);
-		gameData.pack[levelId] = new CandyHopLevel( levelId, gamedata.pack[levelId] || {} );
+		gameData.pack[levelId] = new CandyHopLevel( levelId, gameData.pack[levelId] || {} );
 		storage.save(gameData);
 		return res.send( { result: 'success' } );
 	}

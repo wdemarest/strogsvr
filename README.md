@@ -1,14 +1,46 @@
 # TO SETUP YOUR DEV ENVIRONMENT
 
-You'll need NodeJS v12, npm, git, nodemon (global install), an editor like Sublime 3
+You'll need NodeJS v12+, npm, git, nodemon (global install), an editor like Sublime 3.2.1+
 
-Sublime Hjson highlighting is a plus:
+## On Mac, agree to XCode
+```bash
+sudo xcodebuild -license
+```
+
+## Git Credentials
+On Mac, type Cmd-Space and find Keychain Access
+Within Keychain search for "github"
+Set the URL to https://github.com and the username and password appropriately
+
+## Sublime Config
+Click Sublime / Preferences / Settings, and set all of the following:
+```json
+{
+	"auto_complete": false,
+	"auto_match_enabled": false,
+	"tab_completion": false,
+	"word_wrap": "false"
+}
+
+```
+
+Install Sublime Hjson highlighting:
 1. Install "Package Control" in Sublime: https://packagecontrol.io/installation
 2. Paste that text into Sublime console: Ctrl+Backtick then paste
 3. Restart Sublime. Then Sublime/Preferences/Package Control; type "Package Install" and choose Hjson
 
-
-
+## Mac HID setup
+```bash
+defaults write -g InitialKeyRepeat -int 10
+defaults write -g KeyRepeat -int 1
+defaults write -g com.apple.keyboard.fnState -int 1
+Then logout & login to make the changes take effect
+```
+If you use a roller mouse:
+* Uninstall any Logitech Control Center (LCC)
+* Install SteerMouse
+* In SteerMouse, set Wheel / Roll Up to "Scroll Up 5.0"
+* In SteerMouse, set Wheel / Roll Down to "Scroll Down 5.0"
 
 # TO SETUP A NEW SERVER
 
