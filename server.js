@@ -21,6 +21,7 @@ let CandyHop      = require('./candyHop.js');
 let ReactorRescue = require('./reactorRescue.js');
 let Ops           = require('./ops.js');
 let Site          = require('./site.js');
+let Security      = require('./security.js');
 
 let Proxy         = require('http-proxy-middleware');
 
@@ -30,9 +31,11 @@ var Debug = new DebugProxy({
 	comms: false,
 	serial: false,
 	storage: true,
+	traffic: true
 });
 
 let app = express();
+
 
 function serverStart(port,sitePath,localUrl,session,storage) {
 	port = port || 80;
@@ -46,16 +49,20 @@ function serverStart(port,sitePath,localUrl,session,storage) {
 		target: localUrl
 	});
 
+	let security = new Security();
+
+	app.use( security.filter.bind(security) );
+
 	app.use( '/shadowStone', wsProxy );
 
 	app.use( session );
 
 	app.use( function tellRequest( req, res, next ) {
-		function startsWith(s,value) {
-			return s.substr(0,value.length) == value;
-		}
-		if( !startsWith(req.url,'/image/') && !startsWith(req.url,'image/') && !startsWith(req.url,'/sound/') ) {
-			console.log(req.method, req.url);
+		let ignore = { image:1, images:1, sound:1, sounds:1 }
+		let part   = req.url.split('/');
+		let silent = ignore[part[0]] || (part.length>1 && ignore[part[1]]) || (part.length>2 && ignore[part[2]]) || (part.length>3 && ignore[part[3]])
+		if( !silent ) {
+			console.logTraffic(req.method, req.url);
 		}
 		next();
 	});

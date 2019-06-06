@@ -24,6 +24,7 @@
 		Object.assign( app.accessNoAuthRequired, {
 			'/index.html': 1,
 			'/welcome.html': 1,
+			'/unathorized.html': 1,
 			'/buy.html':1,
 		});
 
@@ -47,6 +48,11 @@
 
 		app.get( '/index.html', function(req,res,next) {
 			const src = Fs.createReadStream('./site/index.html');
+			src.pipe(res);
+		});
+
+		app.get( '/unauthorized.html', function(req,res,next) {
+			const src = Fs.createReadStream('./site/unauthorized.html');
 			src.pipe(res);
 		});
 	}
