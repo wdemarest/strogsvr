@@ -7,7 +7,8 @@
 
 	class Security {
 		constructor() {
-			this.validExtension = { '':1, ico:1, js:1, html:1, css:1, png:1, jpg:1, gif:1, mp3:1, wav:1, ogg:1 };
+			// Sadly, socket.io gets seen as extension .io, so need to include it here.
+			this.validExtension = { '':1, ico:1, js:1, io:1, html:1, css:1, png:1, jpg:1, gif:1, mp3:1, wav:1, ogg:1 };
 			this.validMethod = { GET:1, HEAD:1, POST:1, OPTIONS:1 };
 			this.validCountryCode = { US:1 };
 			this.knownBadIp = {};
