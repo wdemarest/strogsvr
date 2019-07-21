@@ -6,16 +6,18 @@ fi
 
 export connect="ssh ubuntu@strog.com -i ~/.ssh/strog.pem"
 
-if [ "$1" != "deploy" ] && [ "$1" != "config" ] && [ "$1" != "stop" ] && [ "$1" != "start" ] && [ "$1" != "restart" ] && [ "$1" != "status" ] && [ "$1" != "log" ] && [ "$1" != "login" ] && [ "$1" != "fetch" ] && [ "$1" != "dev" ]
+if [ "$1" != "deploy" ] && [ "$1" != "config" ] && [ "$1" != "stop" ] && [ "$1" != "start" ] && [ "$1" != "restart" ] && [ "$1" != "status" ] && [ "$1" != "update" ] && [ "$1" != "log" ] && [ "$1" != "logcache" ] && [ "$1" != "login" ] && [ "$1" != "fetch" ] && [ "$1" != "dev" ]
 then
 echo "svr takes one of the following parameters:"
-echo "* deploy [strogsrv|candyhop|reactorRescue|shadowStone]  - deploys to and overwrites server"
-echo "* config [strogsrv|shadowStone]  - copies config.production.secret.hjson to server"
-echo "* log    [strogsvr|shadowStone]  - emits the logfile from the server"
+echo "* deploy   [strogsrv|candyhop|reactorRescue|shadowStone]  - deploys to and overwrites server"
+echo "* config   [strogsrv|shadowStone]  - copies config.production.secret.hjson to server"
+echo "* log      [strogsvr|shadowStone]  - emits the last 100 log entries from the server"
+echo "* logcache [strogsvr|shadowStone]  - copies the remote log file to ./logcache, overwriting"
 echo "* start    - starts the servers"
 echo "* restart  - re-starts the servers"
 echo "* stop     - stops the servers"
 echo "* status   - shows the status of the running servers"
+echo "* update   - updates the Ubuntu OS with security and other patches"
 echo "* login    - shell to the server"
 echo "* fetch    - fetch server-only files into the ./archive directory, as backups"
 echo "* dev      - starts strogsvr on your dev machine"
@@ -29,6 +31,11 @@ fi
 # Also, the server has a lot of data that is not present in the repo, including:
 # sessions/, payments/, chpack/, config.json, userdata.json
 #
+
+if [ "$1" == "deploy" ]
+then
+$connect "/usr/lib/update-notifier/apt-check --human-readable"
+fi
 
 if [ "$1" == "deploy" ] && [ "$2" == "strogsvr" ]
 then
@@ -89,6 +96,17 @@ echo Status of shadowStone on strog.com
 $connect "ps ax | grep n[o]de.*app.js"
 fi
 
+if [ "$1" == "update" ]
+then
+echo Updating server at strog.com
+$connect "sudo apt-get update -y"
+$connect "sudo apt-get upgrade -y"
+$connect "sudo apt-get dist-upgrade -y"
+$connect "sudo apt-get autoremove -y"
+$connect "sudo apt-get autoclean -y"
+fi
+
+
 if [ "$1" == "log" ] && [ "$2" == "strogsvr" ]
 then
 $connect "tail -f -n 100 ~/strogsvr/strogsvr.log"
@@ -97,6 +115,12 @@ fi
 if [ "$1" == "log" ] && [ "$2" == "shadowStone" ]
 then
 $connect "tail -f -n 100 ~/shadowStone/shadowStone.log"
+fi
+
+if [ "$1" == "logcache" ] && [ "$2" == "shadowStone" ]
+then
+mkdir -p logcache
+scp -i ~/.ssh/strog.pem ubuntu@strog.com:shadowStone/shadowStone.log ./logcache
 fi
 
 if [ "$1" == "login" ]
