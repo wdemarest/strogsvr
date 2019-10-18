@@ -132,6 +132,7 @@ npm install
 ```
 
 7. Redirect port 8080 to port 80. We don't want to run the server as root, but ports below 1024 are root only, so this is the safe workaround.
+Note that as of 2019-10-18 these commands are always run during a ./svr start
 ```bash
 sudo sysctl net.ipv4.ip_forward=1
 sudo iptables -t nat -A PREROUTING -p tcp --dport 80 -j REDIRECT --to-port 8080
@@ -162,15 +163,18 @@ the strog.com server, run:
     ./svr [ deploy app | stop | start | restart | status | log | login | fetch | dev ]
     deploy app can be strogsvr, candyhop, reactorRescue, shadowStone
 
-* deploy - forces the strog.com machine to conform to the git master
-* stop - stops the server
-* start - starts the server
-* restart - shuts down any running server and starts it up fresh, with auto-restarting
-* status - tells the server status
-* log - shows the server's log file
-* login - connects you to the server shell
-* fetch - copies all important server files to local archive
-* dev - launches the server on your dev machine
+* deploy   [strogsrv|candyhop|reactorRescue|shadowStone]  - deploys to and overwrites server
+* config   [strogsrv|shadowStone]  - copies config.production.secret.hjson to server
+* log      [strogsvr|shadowStone]  - emits the last 100 log entries from the server
+* logcache [strogsvr|shadowStone]  - copies the remote log file to ./logcache, overwriting
+* start    - starts the servers
+* restart  - re-starts the servers
+* stop     - stops the servers
+* status   - shows the status of the running servers
+* update   - updates the Ubuntu OS with security and other patches
+* login    - shell to the server
+* fetch    - fetch server-only files into the ./archive directory, as backups
+* dev      - starts strogsvr on your dev machine
 
 # Server Maintenance
 From time to time you must make sure that Ubuntu has all needed packages updated for security.
