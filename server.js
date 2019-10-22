@@ -41,7 +41,7 @@ function serverStart(port,sitePath,localShadowStoneUrl,session,storage) {
 	sitePath = sitePath || '.';
 	app.accessNoAuthRequired = {};
 	app.accessAdminOnly = {};
-	app.tempAccountList = {};
+	/// app.tempAccountList = {};
 
 	console.log("\n\n"+(new Date()).toISOString()+" Serving "+sitePath+" on "+port);
 
