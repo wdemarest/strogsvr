@@ -40,25 +40,25 @@ fi
 if [ "$1" == "deploy" ] && [ "$2" == "strogsvr" ]
 then
 echo Deploying from github.com/wdemarest/strogsvr to strog.com
-$connect "cd ~/strogsvr ; git fetch --all ; git reset --hard origin/master ; npm install"
+$connect "cd ~/strogsvr ; git fetch --all ; git reset --hard origin/master ; npm install ; npm audit fix"
 fi
 
 if [ "$1" == "deploy" ] && [ "$2" == "candyhop" ]
 then
 echo Deploying from github.com/wdemarest/candyhop to strog.com
-$connect "cd ~/candyhop ; git fetch --all ; git reset --hard origin/master ; npm install"
+$connect "cd ~/candyhop ; git fetch --all ; git reset --hard origin/master ; npm install ; npm audit fix"
 fi
 
 if [ "$1" == "deploy" ] && [ "$2" == "reactorRescue" ]
 then
 echo Deploying from github.com/wdemarest/reactorRescue to strog.com
-$connect "cd ~/reactorRescue ; git fetch --all ; git reset --hard origin/master ; npm install"
+$connect "cd ~/reactorRescue ; git fetch --all ; git reset --hard origin/master ; npm install ; npm audit fix"
 fi
 
 if [ "$1" == "deploy" ] && [ "$2" == "shadowStone" ]
 then
 echo Deploying from github.com/wdemarest/shadowStone to strog.com
-$connect "cd ~/shadowStone ; git fetch --all ; git reset --hard origin/master ; npm install"
+$connect "cd ~/shadowStone ; git fetch --all ; git reset --hard origin/master ; npm install ; npm audit fix"
 fi
 
 if [ "$1" == "config" ] && [ "$2" == "strogsvr" ]
