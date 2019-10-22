@@ -66,10 +66,16 @@
 		req.session.isTemp    = account.isTemp || 0;
 	}
 
+	/// Account.tempAccountIndex = 0;
 	Account.createTemp = function() {
+		/// console.assert(uid);
+		/// console.assert(userName);
 		let accountId = 'temp-'+Math.uid();
+		let userName  = 'guest'+(1000+Math.unsafeRandInt(8000)); //'guest'+(1000+Account.tempAccountIndex);
+		Account.tempAccountIndex = (Account.tempAccountIndex+1) % 8000;
+
 		let account = new Account( accountId, {
-			userName: 'guest'+Math.unsafeRandInt(1000),
+			userName: userName,
 			userEmail: '',
 			isAdmin: false,
 			isTemp: true
@@ -84,7 +90,7 @@
 		let password = req.body.password;
 		console.log("Login", userName);
 		let credential = await storage.load( 'Credential', userName );
-		let account    = await storage.load('Account',credential.accountId);
+		let account    = await storage.load( 'Account', credential.accountId );
 
 
 		if( debug ) {

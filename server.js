@@ -36,24 +36,24 @@ var Debug = new DebugProxy({
 
 let app = express();
 
-
-function serverStart(port,sitePath,localUrl,session,storage) {
+function serverStart(port,sitePath,localShadowStoneUrl,session,storage) {
 	port = port || 80;
 	sitePath = sitePath || '.';
 	app.accessNoAuthRequired = {};
 	app.accessAdminOnly = {};
+	app.tempAccountList = {};
 
 	console.log("\n\n"+(new Date()).toISOString()+" Serving "+sitePath+" on "+port);
 
-	let wsProxy = Proxy({
-		target: localUrl
+	let wsProxyShadowStone = Proxy({
+		target: localShadowStoneUrl
 	});
 
 	let security = new Security();
 
 	app.use( security.filter.bind(security) );
 
-	app.use( '/shadowStone', wsProxy );
+	app.use( '/shadowStone', wsProxyShadowStone );
 
 	app.use( session );
 
@@ -74,9 +74,15 @@ function serverStart(port,sitePath,localUrl,session,storage) {
 	app.use( Site.ensureAuthenticated );
 
 	app.use( function( req, res, next ) {
+		//if we see an accountId, we can't just take it for granted.
+		//we have to be sure that it is logged in. For temp accounts, maybe we just
+		//take the machine's word for it though...
+
+
 		if( !req.cookies.accountId || req.cookies.accountId=='undefined' ) {
 			let ip = req.connection.remoteAddress;
-			console.log('New temp account requested for IP', ip, 'User-Agent', req.headers['user-agent']);
+			let ua = req.headers['user-agent'];
+			console.log('Temp Account:', ip, 'User-Agent',ua);
 			let account = Account.createTemp();
 			storage.save( account );
 			Account.loginActivate(req,res,account);
@@ -100,7 +106,7 @@ function serverStart(port,sitePath,localUrl,session,storage) {
 
 	//app.theServer = http.createServer(app);
 	app.theServer = app.listen(port);
-	app.theServer.on('upgrade', wsProxy.upgrade)
+	app.theServer.on('upgrade', wsProxyShadowStone.upgrade)
 }
 
 let serverShutdown = function() {
