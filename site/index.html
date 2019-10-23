@@ -153,6 +153,14 @@ textarea:focus, input:focus{
 	background-color: gold;
 }
 
+.tickleStyle input {
+	padding-left: 1vw;
+}
+
+.tickleStyle input:hover {
+	border-color: gold;
+}
+
 .tickleStyle input::placeholder {
 	color: #ccc;
 	font-size: 1.5vw;
@@ -900,7 +908,7 @@ $(document).ready( main );
 	<div class="container mainPage">
 		<div class="row">
 			<div class="col-md-12 turmoilFeature">
-				<img src="image/turmoilFeature.png">
+				<a href="/turmoil"><img src="image/turmoilFeature.png"></a>
 				<form class="tickleForm" onsubmit="return tickleSubmit.apply(this,[]);">
 					<fieldset class="tickleFormFields tickleStyle">
 						<input name="userEmail" class="form-bit" autocapitalize="off" placeholder="Your email here" type="text" required>
