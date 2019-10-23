@@ -17,12 +17,18 @@
 <style>
 	/* Space out content a bit */
 body {
-  background-color: #131313;
-  color: white;
+  background-color: white; 
+  color: #131313;
 }
 
 .main {
-	background-image: url(image/bg.jpg);
+	NONbackground-image: url(image/bg.jpg);
+}
+
+.userName {
+	position: relative;
+	display: block;
+	padding: 10px 15px;
 }
 
 a.logo img {
@@ -34,7 +40,7 @@ a.logo {
 	padding-left: 4px;
 	padding-right: 4px;
 	border-radius: 6px;
-	background: url(image/strogLogoGradients.png) no-repeat center center;
+	background: url(image/strogLogoBlack.png) no-repeat center center;
 	background-size: contain;
 	display: inline-block;
 	transition: all 0.2s ease-out;
@@ -43,7 +49,7 @@ a.logo {
 a.logo:hover {
 	text-decoration: none;
 	transition: all 0.2s ease-in;
-	background: url(image/strogLogoWhiteNoCircle.png) no-repeat center center;
+	background: url(image/strogLogoBlack.png) no-repeat center center;
 	background-size: contain;
 }
 
@@ -68,6 +74,88 @@ a.logo:hover {
 }
 
 .centerContent {
+	text-align: center;
+}
+
+.turmoilFeature {
+	width: 100%;
+	padding: 0px;
+	background-color: black;
+}
+
+.turmoilFeature img {
+	width: 100%;
+}
+
+
+.turmoilFeature .turmoilBlurb {
+	position: absolute;
+	bottom: 3%;
+	left: 7%;
+	margin-left: 10%;
+	margin-right: 20%;
+	font-size: 2vw;
+	font-family: "arial";
+	color: #333;
+}
+
+.tickleForm {
+	position: absolute;
+	bottom: 18%;
+	left: 22%;
+	width: 60%;
+	font-size: 3vw;
+	font-family: "arial";
+	color: #aaa;
+}
+
+textarea:focus, input:focus{
+    outline: none;
+}
+
+.tickleStyle input {
+	width: 80%;
+}
+
+#tickleSafeMessage {
+	color: #d4b930;
+	font-size: 1.2vw;
+	font-style: italic;
+}
+
+#tickleFailMessage {
+	color: red;
+	font-size: 1.2vw;
+	font-style: italic;
+}
+
+#tickleSuccessMessage {
+	display: none;
+	color: #60dc60;
+	position: absolute;
+	bottom: 18%;
+	left: 22%;
+	width: 60%;
+	font-size: 2vw;
+	font-family: "arial";
+}
+
+.tickleStyle input, .tickleStyle button {
+	font-size: 2.2vw;
+	font-family: "arial";
+	color: #444;
+	border-radius: 6px;
+	border-style: solid;
+	border: 2px solid #bbb;
+}
+
+.tickleStyle button:hover {
+	background-color: gold;
+}
+
+.tickleStyle input::placeholder {
+	color: #ccc;
+	font-size: 1.5vw;
 	text-align: center;
 }
 
@@ -386,6 +474,61 @@ function logout() {
 	});
 
 }
+
+function tickleSubmit() {
+	let self = this;
+
+	function enable(state) {
+		$(self).find('.form-bit').prop('disabled', !state);
+		$(self).find('button[type="submit"]').prop('disabled', !state);
+		$(self).find('.fa-spin').toggleClass('hidden',state);
+	}
+
+	try {
+		enable(false);
+		let data = {}
+		let form = $(self).find('.form-bit');
+		$.each(form,function(index,value) {
+			data[value.name] = $(value).val();
+		});
+
+		function failure(message) {
+			$('#tickleSafeMessage').hide();
+			$('#tickleFailMessage').show().text(message);
+			enable(true);
+		}
+
+		function success(response) {
+			let r = typeof response == 'string' ? JSON.parse(response) : response;
+			if( r.result == 'success' ) {
+				$(self).find('.fa-spin').toggleClass('hidden',false);
+				$('#tickleFailMessage').hide();
+				$('#tickleSafeMessage').hide();
+				$('.tickleFormFields').hide();
+				$('#tickleSuccessMessage').show();
+				return;
+			}
+			failure(r.message);
+		}
+
+		$.ajax({
+			url: '/tickleAdd',
+			method: 'POST',
+			contentType:"application/json; charset=utf-8",
+			data: JSON.stringify(data),
+			success: success,
+			error: function(jqXHR, textStatus) {
+				failure(textStatus);
+			}
+		});
+
+	}
+	catch(e) {
+		debugger;
+	}
+	return false;
+}
+
 
 function signupSubmit() {
 	let self = this;
@@ -717,8 +860,8 @@ $(document).ready( main );
 <div class="main">
 	<div class="container">
 		<div class="header clearfix">
-			<div class="pull-right">
-				<span class="nav userName"></span>
+			<div class="nav pull-right">
+				<span class="userName"></span>
 			</div>
 			<nav>
 				<ul class="nav nav-pills pull-right">
@@ -726,20 +869,27 @@ $(document).ready( main );
 					<li role="presentation"><a data-toggle="modal" data-target="#login-dialog">Login</a></li>
 				</ul>
 			</nav>
-			<a class="logo" href="index.html"><img src="image/strogLogoGradients.png"></a>
+			<a class="logo" href="index.html"><img src="image/strogLogoBlack.png"></a>
 		</div>
 	</div>
 	<div class="container mainPage">
 		<div class="row">
-			<div class="col-md-12 shadowStoneFeature">
-				<img src="image/shadowStoneFeature.png">
-				<h4>Shadow Stone</h4>
-				<a href="/shadowStone/index.html">Play the Beta Now</a>
-				<!--div class="shadowStoneFrame">
-					<iframe src="../../shadowStone/replay.html?timeline=shortgame">
-					</iframe>
-				</div-->
-				<h5>Something New in the Dark...</h5>
+			<div class="col-md-12 turmoilFeature">
+				<img src="image/turmoilFeature.png">
+				<form class="tickleForm" onsubmit="return tickleSubmit.apply(this,[]);">
+					<fieldset class="tickleFormFields tickleStyle">
+						<input name="userEmail" class="form-bit" autocapitalize="off" placeholder="Your email here" type="text" required>
+						<input name="note" class="form-bit" value="turmoil" type="text" style="display:none;">
+						<button type="submit" class="form-bit">
+						<span><i class="fa fa-refresh fa-spin hidden"></i><i class="fa fa-check"></i></span>
+						</button>
+						<div id="tickleSafeMessage">We won't spam you, or share your email with anyone, ever.</div>
+						<div id="tickleFailMessage"></div>
+					</fieldset>
+				</form>
+				<div id="tickleSuccessMessage">Thanks! We will email you when Turmoil is available!</div>
+
+				<div class="turmoilBlurb">Coming to the <a target="_blank" href="https://www.childrensbusinessfair.org/austin">Acton Children’s Business Fair</a>, October 26th 10am-2pm, in central Austin at 1606 Niles Road!</div>
 			</div>
 		</div>
 		<div class="row">
@@ -768,6 +918,19 @@ $(document).ready( main );
 				</a>
 			</div>
 		</div>
+		<div class="row">
+			<div class="col-md-12 shadowStoneFeature">
+				<img src="image/shadowStoneFeature.png">
+				<h4>Shadow Stone</h4>
+				<a href="/shadowStone/index.html">Play the Beta Now</a>
+				<!--div class="shadowStoneFrame">
+					<iframe src="../../shadowStone/replay.html?timeline=shortgame">
+					</iframe>
+				</div-->
+				<h5>Something New in the Dark...</h5>
+			</div>
+		</div>
+
 	</div>
 </div>
 </body>

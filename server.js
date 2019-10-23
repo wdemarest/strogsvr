@@ -16,16 +16,18 @@ let Config        = require('./config.js');
 // Plugins
 let Account       = require('./account.js');
 let Emailer       = require('./emailer.js');
+let Tickle        = require('./tickle.js');
 let Payment       = require('./payment.js');
 let CandyHop      = require('./candyHop.js');
 let ReactorRescue = require('./reactorRescue.js');
+let Turmoil       = require('./turmoil.js');
 let Ops           = require('./ops.js');
 let Site          = require('./site.js');
 let Security      = require('./security.js');
 
 let Proxy         = require('http-proxy-middleware');
 
-let plugins = [Account, Emailer, Payment, CandyHop, ReactorRescue, Ops, Site];
+let plugins = [Account, Emailer, Tickle, Payment, CandyHop, ReactorRescue, Turmoil, Ops, Site];
 
 var Debug = new DebugProxy({
 	comms: false,
