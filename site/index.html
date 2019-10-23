@@ -318,6 +318,27 @@ textarea:focus, input:focus{
     text-shadow: -1px -1px 0 #acbccc, 1px -1px 0 #acbccc, -1px 1px 0 #acbccc, 1px 1px 0 #acbccc;
 }
 
+.turmoil {
+	background-image: url("image/turmoilBg.png");
+	background-size: contain;
+	border: 4px solid gray;
+}
+
+.turmoil img {
+	width: 60%;
+	margin-left: 10%;
+	margin-top: 10%;
+	display: block;
+	position: absolute;
+}
+
+.textTurmoil {
+	font-family: "impact";
+    color: #bbb;
+    text-shadow: -1px -1px 0 #333, 1px -1px 0 #333, -1px 1px 0 #333, 1px 1px 0 #333;
+}
+
+
 .fadedShadows {
 	font-weight: bold;
 	font-family: "luminari";
@@ -348,6 +369,10 @@ textarea:focus, input:focus{
 
 .delay2 {
 	animation-delay: 2s;
+}
+
+.delay3 {
+	animation-delay: 3s;
 }
 
 @keyframes slide-left {
@@ -914,6 +939,13 @@ $(document).ready( main );
 				<a class="gameFrame reactorRescue" href="/reactorRescue/index.html">
 					<img src="image/mover.png">
 					<div class="btn-lg gameTitle slide-left delay2 textReactorRescue">Reactor Rescue</div>
+					<!--a class="btn btn-info btn-lg gamePlayButton" href="/reactorRescue/index.html">Play</a-->
+				</a>
+			</div>
+			<div class="col-xs-6 col-sm-4 gameBox">
+				<a class="gameFrame turmoil" href="/turmoil/index.html">
+					<img src="image/turmoilCards.png">
+					<div class="btn-lg gameTitle slide-left delay3 textTurmoil">TURMOIL</div>
 					<!--a class="btn btn-info btn-lg gamePlayButton" href="/reactorRescue/index.html">Play</a-->
 				</a>
 			</div>
