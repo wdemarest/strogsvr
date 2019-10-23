@@ -79,14 +79,44 @@ a.logo:hover {
 
 .turmoilFeature {
 	width: 100%;
+	height: 50vw;
 	padding: 0px;
-	background-color: black;
+	background-color: white;
 }
 
 .turmoilFeature img {
 	width: 100%;
 }
 
+.turmoilFeature .turmoilLearnMore {
+	position: absolute;
+	bottom: 37%;
+	left: 36%;
+	font-size: 3vw;
+	font-family: "arial";
+	border-radius: 8px;
+
+	border:1px solid #666;
+	padding: 0px 20px 0px 20px;
+	text-decoration:none;
+	font-weight: normal;
+	color: black;
+	background-color: #ffc579;
+	background: linear-gradient(to right, #8e8e8e 0%,#e1e1e1 51%,#9b9b9b 100%);
+}
+
+.turmoilFeature .turmoilLearnMore:hover {
+	background-color: rgba( 212, 175, 55, 0.9);
+	background-image: linear-gradient(to bottom, #ffc579, #fb9d23);
+}
+
+.turmoilFeature .turmoilNotice {
+	position: absolute;
+	bottom: 28%;
+	left: 12%;
+	font-size: 1.8vw;
+	font-family: "arial";
+}
 
 .turmoilFeature .turmoilBlurb {
 	position: absolute;
@@ -96,12 +126,13 @@ a.logo:hover {
 	margin-right: 20%;
 	font-size: 2vw;
 	font-family: "arial";
+	text-align: center;
 	color: #333;
 }
 
 .tickleForm {
 	position: absolute;
-	bottom: 18%;
+	bottom: 16%;
 	left: 22%;
 	width: 60%;
 	font-size: 3vw;
@@ -693,6 +724,7 @@ function forgot(userName) {
 function main() {
 	console.log('Starting page.');
 	$('.userName').html( Cookie.get( 'userName' ) );
+	$('.tickleStyle input').focus();
 	setInterval( ()=>{
 		let a = 1;
 	}, 0.5*1000 );
@@ -909,6 +941,8 @@ $(document).ready( main );
 		<div class="row">
 			<div class="col-md-12 turmoilFeature">
 				<a href="/turmoil"><img src="image/turmoilFeature.png"></a>
+				<div class="turmoilNotice">If you want to know when the full release happens, enter your email below!</div>
+				<button class="turmoilLearnMore">Learn More!</button>
 				<form class="tickleForm" onsubmit="return tickleSubmit.apply(this,[]);">
 					<fieldset class="tickleFormFields tickleStyle">
 						<input name="userEmail" class="form-bit" autocapitalize="off" placeholder="Your email here" type="text" required>
