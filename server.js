@@ -14,6 +14,7 @@ let Serial        = require('./serial.js');
 let Config        = require('./config.js');
 
 // Plugins
+let Credential    = require('./credential.js');
 let Account       = require('./account.js');
 let Emailer       = require('./emailer.js');
 let Tickle        = require('./tickle.js');
@@ -27,7 +28,7 @@ let Security      = require('./security.js');
 
 let Proxy         = require('http-proxy-middleware');
 
-let plugins = [Account, Emailer, Tickle, Payment, CandyHop, ReactorRescue, Turmoil, Ops, Site];
+let plugins = [Credential, Account, Emailer, Tickle, Payment, CandyHop, ReactorRescue, Turmoil, Ops, Site];
 
 var Debug = new DebugProxy({
 	comms: false,
