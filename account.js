@@ -28,10 +28,36 @@
 		isTemp: true,
 	};
 
+	Account.guestIndex = 1000;
+
+	let SiteReg = ['Site',{
+		save:    ['siteId','guestIndex'],
+		make:    (data) => new Site(data.siteId,Site.initData),
+		table:   'Site',
+		idField: 'siteId',
+		version: 1
+	}];
+
+
+	class Site {
+		constructor(siteId,data) {
+			this.siteId = siteId || Site.mySiteId;
+			this.guestIndex = data.guestIndex;
+		}
+	}
+
+	Site.mySiteId = "strog.com";
+	Site.initData = {
+		siteId: Site.mySiteId,
+		guestIndex: 1000
+	};
+
+
 	Account.onInit = async function(_context) {
 		config  = _context.config;
 		storage = _context.storage;
 		storage.serial.register( ...AccountReg );
+		storage.serial.register( ...SiteReg );
 
 		console.assert( config.siteUrl );
 		console.assert( config.contactEmail );
@@ -41,6 +67,12 @@
 		if( !account ) {
 			account = new Account( admin.accountId, {userName: admin.userName, userEmail: null, isAdmin: true, isTemp: false} );
 			storage.save(account);
+		}
+
+		let site = await storage.load( 'Site', Site.mySiteId );
+		if( !site ) {
+			site = new Site( Site.mySiteId, Site.initData );
+			storage.save(site);
 		}
 	}
 
@@ -66,13 +98,15 @@
 		req.session.isTemp    = account.isTemp || 0;
 	}
 
-	/// Account.tempAccountIndex = 0;
-	Account.createTemp = function() {
+	Account.createTemp = async function() {
 		/// console.assert(uid);
 		/// console.assert(userName);
-		let accountId = 'temp-'+Math.uid();
-		let userName  = 'guest'+(1000+Math.unsafeRandInt(8000)); //'guest'+(1000+Account.tempAccountIndex);
-		Account.tempAccountIndex = (Account.tempAccountIndex+1) % 8000;
+		let site = await storage.load( 'Site', Site.mySiteId );
+		site.guestIndex += 1;
+		storage.save(site);
+
+		let accountId = 'T'+Math.uid();
+		let userName  = 'guest'+site.guestIndex;
 
 		let account = new Account( accountId, {
 			userName: userName,

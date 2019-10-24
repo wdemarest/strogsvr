@@ -43,7 +43,6 @@ function serverStart(port,sitePath,localShadowStoneUrl,session,storage) {
 	sitePath = sitePath || '.';
 	app.accessNoAuthRequired = {};
 	app.accessAdminOnly = {};
-	/// app.tempAccountList = {};
 
 	console.log("\n\n"+(new Date()).toISOString()+" Serving "+sitePath+" on "+port);
 
@@ -75,17 +74,21 @@ function serverStart(port,sitePath,localShadowStoneUrl,session,storage) {
 
 	app.use( Site.ensureAuthenticated );
 
-	app.use( function( req, res, next ) {
-		//if we see an accountId, we can't just take it for granted.
-		//we have to be sure that it is logged in. For temp accounts, maybe we just
-		//take the machine's word for it though...
+	app.use( async function( req, res, next ) {
+		let accountIdBlank = !req.cookies.accountId || req.cookies.accountId=='undefined';
 
+		if( !accountIdBlank && (!req.session || !req.session.accountId) ) {
+			// The user is making a claim as to his account, but we haven't
+			// established a session yet for this user...
+			console.log('User connecting with account, but no session.', req.cookies.accountId);
+		}
 
-		if( !req.cookies.accountId || req.cookies.accountId=='undefined' ) {
+		if( accountIdBlank ) {
 			let ip = req.connection.remoteAddress;
 			let ua = req.headers['user-agent'];
-			console.log('Temp Account:', ip, 'User-Agent',ua);
-			let account = Account.createTemp();
+			console.log('Temp Account needed for:', ip, 'User-Agent',ua);
+			let account = await Account.createTemp();
+			console.log('Made', account);
 			storage.save( account );
 			Account.loginActivate(req,res,account);
 		}
@@ -99,7 +102,7 @@ function serverStart(port,sitePath,localShadowStoneUrl,session,storage) {
 		res.cookie( 'userName', req.session ? req.session.userName : null);
 		res.cookie( 'userEmail', req.session ? req.session.userEmail : null);
 		res.cookie( 'isAdmin', req.session ? req.session.isAdmin : null);
-		res.cookie( 'isReal', req.session ? req.session.isReal : null);
+		res.cookie( 'isTemp', req.session ? req.session.isTemp : null);
 		return next();
 	});
 

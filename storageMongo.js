@@ -110,6 +110,9 @@
 			if( !meta ) {
 				console.log( 'Failed to deduce meta for', obj );
 			}
+			console.log(meta);
+			console.log(obj);
+			
 			console.assert(meta);
 			let table = meta.table;
 			console.assert(table);
