@@ -91,8 +91,8 @@
 		let password = req.body.password;
 		console.log("Login", userName);
 		let credential = await storage.load( 'Credential', userName );
-		let account    = await storage.load( 'Account', credential.accountId );
 
+		let account    = credential ? await storage.load( 'Account', credential.accountId ) : null;
 
 		if( debug ) {
 			console.log( "userName: ", userName );
