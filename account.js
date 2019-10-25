@@ -2,6 +2,7 @@
 
 	let Credential = require('./credential.js');
 	let Emailer    = require('./emailer.js');
+	let Umbrella   = require('./umbrella.js');
 
 	let config;
 	let storage;
@@ -28,36 +29,10 @@
 		isTemp: true,
 	};
 
-	Account.guestIndex = 1000;
-
-	let SiteReg = ['Site',{
-		save:    ['siteId','guestIndex'],
-		make:    (data) => new Site(data.siteId,Site.initData),
-		table:   'Site',
-		idField: 'siteId',
-		version: 1
-	}];
-
-
-	class Site {
-		constructor(siteId,data) {
-			this.siteId = siteId || Site.mySiteId;
-			this.guestIndex = data.guestIndex;
-		}
-	}
-
-	Site.mySiteId = "strog.com";
-	Site.initData = {
-		siteId: Site.mySiteId,
-		guestIndex: 1000
-	};
-
-
 	Account.onInit = async function(_context) {
 		config  = _context.config;
 		storage = _context.storage;
 		storage.serial.register( ...AccountReg );
-		storage.serial.register( ...SiteReg );
 
 		console.assert( config.siteUrl );
 		console.assert( config.contactEmail );
@@ -67,12 +42,6 @@
 		if( !account ) {
 			account = new Account( admin.accountId, {userName: admin.userName, userEmail: null, isAdmin: true, isTemp: false} );
 			storage.save(account);
-		}
-
-		let site = await storage.load( 'Site', Site.mySiteId );
-		if( !site ) {
-			site = new Site( Site.mySiteId, Site.initData );
-			storage.save(site);
 		}
 	}
 
@@ -101,12 +70,10 @@
 	Account.createTemp = async function() {
 		/// console.assert(uid);
 		/// console.assert(userName);
-		let site = await storage.load( 'Site', Site.mySiteId );
-		site.guestIndex += 1;
-		storage.save(site);
+		let guestIndex = await Umbrella.getAndIncGuestIndex();
 
 		let accountId = 'T'+Math.uid();
-		let userName  = 'guest'+site.guestIndex;
+		let userName  = 'guest'+guestIndex;
 
 		let account = new Account( accountId, {
 			userName: userName,
@@ -114,7 +81,7 @@
 			isAdmin: false,
 			isTemp: true
 		});
-		console.log( 'Created temp account',account );
+		console.log( 'Created temp account', account );
 		return account;
 	}
 
@@ -226,7 +193,8 @@
 
 	Account.logout = function(req,res) {
 		console.log('logout');
-		req.session.destroy();
+		req.session.accountId = null;
+		res.clearCookie('accountId');
 		res.send( { result: 'success' } );
 	}
 

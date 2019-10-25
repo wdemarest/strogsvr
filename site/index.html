@@ -18,58 +18,12 @@
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap-theme.min.css">
 <link rel="stylesheet" href="//code.cdn.mozilla.net/fonts/fira.css">
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+<link rel="stylesheet" href="nav.css">
 
 <style>
-	/* Space out content a bit */
-body {
-  background-color: white; 
-  color: #131313;
-}
-
-.main {
-	NONbackground-image: url(image/bg.jpg);
-}
-
-.userName {
-	position: relative;
-	display: block;
-	padding: 10px 15px;
-}
-
-a.logo img {
-	height: 60px;
-	visibility: hidden;
-}
-
-a.logo {
-	padding-left: 4px;
-	padding-right: 4px;
-	border-radius: 6px;
-	background: url(image/strogLogoBlack.png) no-repeat center center;
-	background-size: contain;
-	display: inline-block;
-	transition: all 0.2s ease-out;
-}
-
-a.logo:hover {
-	text-decoration: none;
-	transition: all 0.2s ease-in;
-	background: url(image/strogLogoBlack.png) no-repeat center center;
-	background-size: contain;
-}
-
-.mainPage h2 {
-	font-family: futura;
-	color: #aaa;
-}
-
-.modal-title, .modal-body, .textBlack {
-  color: black;
-}
-
 .gameRow {
 }
 
@@ -79,10 +33,6 @@ a.logo:hover {
 	display: table;
 	text-align: center;
 	position: relative;
-}
-
-.centerContent {
-	text-align: center;
 }
 
 .turmoilFeature {
@@ -146,10 +96,6 @@ a.logo:hover {
 	font-size: 3vw;
 	font-family: "arial";
 	color: #aaa;
-}
-
-textarea:focus, input:focus{
-    outline: none;
 }
 
 .tickleStyle input {
@@ -436,68 +382,6 @@ textarea:focus, input:focus{
   }
 }
 
-nav a {
-	cursor: pointer;
-}
-
-/* Everything but the jumbotron gets side spacing for mobile first views */
-.header,
-.marketing,
-.footer {
-  padding-right: 15px;
-  padding-left: 15px;
-}
-
-/* Custom page header */
-.header {
-	margin-top: 10px;
-	margin-bottom: 20px;
-	border-bottom: 0px solid #e5e5e5;
-}
-/* Make the masthead heading the same height as the navigation */
-.header h3 {
-  margin-top: 0;
-  margin-bottom: 0;
-  line-height: 40px;
-}
-
-/* Custom page footer */
-.footer {
-  padding-top: 19px;
-  color: #777;
-  border-top: 1px solid #e5e5e5;
-}
-
-/* Main marketing message and sign up button */
-.jumbotron {
-  text-align: center;
-  border-bottom: 1px solid #e5e5e5;
-}
-.jumbotron .btn {
-  padding: 14px 24px;
-  font-size: 21px;
-}
-
-/* Responsive: Portrait tablets and up */
-@media screen and (min-width: 768px) {
-  /* Remove the padding we set earlier */
-  .header,
-  .marketing,
-  .footer {
-    padding-right: 0;
-    padding-left: 0;
-  }
-
-  /* Remove the bottom border on the jumbotron for visual effect */
-  .jumbotron {
-    border-bottom: 0;
-  }
-}
-
-.ctr {
-	float: none;
-	margin: auto;
-}
 
 .shadowStoneText {
 	font-size: 3.5vw;
@@ -542,6 +426,8 @@ function logout() {
 		data: {},
 		success: function() {
 			window.location = 'index.html';
+			location.reload();
+			navTweak();
 		},
 		error: function(jqXHR, textStatus) {
 			alert(textStatus);
@@ -732,9 +618,21 @@ function forgot(userName) {
 	});
 }
 
+function navTweak() {
+	let userName = Cookie.get( 'userName' );
+	let isTemp   = Cookie.get( 'isTemp' );
+	isTemp = !(isTemp=='false' || isTemp=='null' || isTemp=='0' || isTemp=='' || isTemp=='undefined');
+	let isFullUser = userName && !isTemp;
+	$('.userName').html( userName );
+	$('#navLogin').toggle( !isFullUser )
+	$('#navSignup').toggle( !isFullUser )
+	$('#navLogout').toggle( isFullUser )
+}
+
 function main() {
 	console.log('Starting page.');
-	$('.userName').html( Cookie.get( 'userName' ) );
+	$('#navLogout').on('click',()=>{logout();});
+	navTweak();
 	$('.tickleStyle input').focus();
 	setInterval( ()=>{
 		let a = 1;
@@ -933,16 +831,19 @@ $(document).ready( main );
 		</div>
 	</div>
 </div>
+
+<!-- MAIN WEB PAGE -->
 <div class="main">
 	<div class="container">
 		<div class="header clearfix">
 			<div class="nav pull-right">
-				<span class="userName"></span>
+				<span><span class="userIcon"><i class="fa fa-user-circle"></i></span><span class="userName"></span></span>
 			</div>
 			<nav>
 				<ul class="nav nav-pills pull-right">
-					<li role="presentation"><a data-toggle="modal" data-target="#signup-dialog">Signup</a></li>
-					<li role="presentation"><a data-toggle="modal" data-target="#login-dialog">Login</a></li>
+					<li id="navLogin" role="presentation"><a data-toggle="modal" data-target="#signup-dialog">Signup</a></li>
+					<li id="navSignup" role="presentation"><a data-toggle="modal" data-target="#login-dialog">Login</a></li>
+					<li id="navLogout" role="presentation"><a data-toggle="modal">Logout</a></li>
 				</ul>
 			</nav>
 			<a class="logo" href="index.html"><img src="image/strogLogoBlack.png"></a>
