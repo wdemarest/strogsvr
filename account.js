@@ -100,9 +100,9 @@
 		let account    = credential ? await storage.load( 'Account', credential.accountId ) : null;
 
 		if( debug ) {
-			console.log( "userName: ", userName );
-			console.log( "password: ", password );
-			console.log( credential );
+			console.log( "userName entered: ", userName );
+			console.log( "password entered: ", password );
+			console.log( "credentials found: ", credential );
 		}
 
 		let response = { result: 'failure' };

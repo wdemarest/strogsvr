@@ -37,6 +37,7 @@
 
 		let adminCredential = await storage.load( 'Credential', Credential.admin.userName );
 		if( !adminCredential || adminCredential.password != Credential.admin.password ) {
+			console.log( "Admin credentials are new or have changed. Writing to db." );
 			adminCredential = new Credential(
 				Credential.admin.userName,
 				Credential.admin.password,
