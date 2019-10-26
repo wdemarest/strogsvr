@@ -36,12 +36,17 @@
 
 		console.assert( config.siteUrl );
 		console.assert( config.contactEmail );
+		console.assert( Credential.admin.password );
 
-		let admin   = Credential.admin;
-		let account = await storage.load( 'Account', admin.accountId );
-		if( !account ) {
-			account = new Account( admin.accountId, {userName: admin.userName, userEmail: null, isAdmin: true, isTemp: false} );
-			storage.save(account);
+		let adminAccount = await storage.load( 'Account', Credential.admin.accountId );
+		if( !adminAccount ) {
+			adminAccount = new Account( Credential.admin.accountId, {
+				userName: Credential.admin.userName,
+				userEmail: null,
+				isAdmin: true,
+				isTemp: false
+			} );
+			storage.save(adminAccount);
 		}
 	}
 

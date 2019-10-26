@@ -41,6 +41,7 @@ if [ "$1" == "deploy" ] && [ "$2" == "strogsvr" ]
 then
 echo Deploying from github.com/wdemarest/strogsvr to strog.com
 $connect "cd ~/strogsvr ; git fetch --all ; git reset --hard origin/master ; npm install ; npm audit fix"
+echo NOTE: If you changed the config be sure to svr config strogsvr
 fi
 
 if [ "$1" == "deploy" ] && [ "$2" == "candyhop" ]

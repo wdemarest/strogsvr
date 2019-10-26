@@ -39,6 +39,14 @@
 	}
 
 	// WARNING: Somehow we need to make this atomic.
+/*
+That would be done with 
+	let umbrella = db.collection.findAndModify(
+		query:  {_id: doc_id},
+		update: { $inc: { guestIndex :1 } },
+		new: true,
+	)
+*/
 	Umbrella.getAndIncGuestIndex = async function() {
 		let umbrella = await storage.load( 'Umbrella', Umbrella.mySiteId );
 		umbrella.guestIndex = (((umbrella.guestIndex+1)-999)%9000)+999;

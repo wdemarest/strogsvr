@@ -23,24 +23,26 @@
 	Credential.admin = {
 		accountId: 'admin',
 		userName:  'admin',
-		password:  'password'
+		password:  null
 	};
-
-	Credential.matchesAdmin = function(u,p) {
-		return u==Credential.admin.userName && p==Credential.admin.password;
-	}
 
 	Credential.onInit = async function(_context) {
 		let storage = _context.storage;
 		storage.serial.register( ...CredentialReg );
 
-		let admin = Credential.admin;
-		admin.password = _context.config.adminPassword || admin.password;
+		Credential.admin.password = _context.config.adminPassword;
+		if( !Credential.admin.password || (Credential.admin.password in ['password','admin']) ) {
+			throw "Illegal admin credentials. Please check config.*.secret.hjson";
+		}
 
-		let credential = await storage.load( 'Credential', admin.userName );
-		if( !credential ) {
-			credential = new Credential( admin.userName, admin.password, admin.accountId );
-			storage.save( credential );
+		let adminCredential = await storage.load( 'Credential', Credential.admin.userName );
+		if( !adminCredential || adminCredential.password != Credential.admin.password ) {
+			adminCredential = new Credential(
+				Credential.admin.userName,
+				Credential.admin.password,
+				Credential.admin.accountId
+			);
+			storage.save( adminCredential );
 		}
 	}
 
