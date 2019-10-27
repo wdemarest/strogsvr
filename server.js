@@ -46,7 +46,7 @@ function serverStart(port,sitePath,localShadowStoneUrl,sessionMaker,storage) {
 	app.accessNoAuthRequired = {};
 	app.accessAdminOnly = {};
 
-	console.log("\n\n"+(new Date()).toISOString()+" Serving "+sitePath+" on "+port);
+	console.log((new Date()).toISOString()+" Serving "+sitePath+" on "+port);
 
 	let wsProxyShadowStone = Proxy({
 		target: localShadowStoneUrl
@@ -123,6 +123,7 @@ function serverStart(port,sitePath,localShadowStoneUrl,sessionMaker,storage) {
 	});
 
 	// PLUGIN ONINSTALLROUTES
+	console.log('Installing plugin routes.');
 	plugins.forEach( plugin => plugin.onInstallRoutes ? plugin.onInstallRoutes(app) : 0 );
 
 	//app.theServer = http.createServer(app);
@@ -163,7 +164,12 @@ async function main() {
 		config:  config,
 		storage: storage
 	};
-	plugins.forEach( plugin => plugin.onInit ? plugin.onInit(appContext) : 0 );
+	console.log('Loading',plugins.length,'plugins.');
+	for( plugin of plugins ) {
+		if( plugin.onInit ) {
+			await plugin.onInit(appContext);
+		}
+	};
 
 	serverStart( config.port, config.sitePath, config.shadowStoneLocalUrl, sessionMaker, storage );
 }

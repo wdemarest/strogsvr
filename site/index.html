@@ -510,7 +510,7 @@ function signupSubmit() {
 
 		function failure(message) {
 			$('#signup-failure').modal('show');
-			$('#failMessage').text(message);
+			$('#signupFailMessage').text(message);
 			enable(true);
 		}
 
@@ -562,7 +562,7 @@ function loginSubmit() {
 
 		function failure(message) {
 			$('#login-failure').modal('show');
-			$('#failMessage').text(message);
+			$('#loginFailMessage').text(message);
 			enable(true);
 		}
 
@@ -594,7 +594,7 @@ function loginSubmit() {
 	return false;
 }
 
-function forgot(userName) {
+function forgot(userName,userEmail) {
 	if( !userName ) {
 		return alert( "Please enter your username." );
 	}
@@ -603,10 +603,10 @@ function forgot(userName) {
 		url: '/forgot',
 		method: 'POST',
 		contentType:"application/json; charset=utf-8",
-		data: JSON.stringify({userName:userName}),
+		data: JSON.stringify({userName:userName,userEmail:userEmail}),
 		success: function(result) {
 			if( result.status == 'success' ) {
-				alert( "We just sent an email with your login information. It might take a while to arrive, and don't forget to check your spam folder!");
+				alert( "We just sent an email to help reset your password. It might take a while to arrive, and don't forget to check your spam folder!");
 			}
 			else {
 				alert( "Error: The Strog Entertainment server said '"+JSON.stringify(result) );
@@ -739,7 +739,7 @@ $(document).ready( main );
 			</div>
 			<div class="modal-body">
 				<p>Sorry, but your signup did not succeed.</p>
-				<p id='failMessage'></p>
+				<p id='signupFailMessage'></p>
 			</div>
 			<div class="modal-footer">
 				<button type="button" class="btn btn-default" data-dismiss="modal">Try Again</button>
@@ -822,7 +822,7 @@ $(document).ready( main );
 			</div>
 			<div class="modal-body">
 				<p>Sorry, but your login did not succeed.</p>
-				<p id='failMessage'></p>
+				<p id='loginFailMessage'></p>
 			</div>
 			<div class="modal-footer">
 				<button type="button" class="btn btn-default" data-dismiss="modal">Try Again</button>

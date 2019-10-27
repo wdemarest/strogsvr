@@ -61,7 +61,7 @@
 			console.logStorage('storage delete',meta.className,obj[idField],'from',meta.table);
 			this.db.collection(meta.table).deleteOne( this.filter(idField,obj[idField]) )
 		}
-		async _load(className,query,single) {
+		async _load(className,query,asRaw) {
 			console.assert(className);
 			console.assert(query);
 			return new Promise( (resolve,reject) => {
@@ -77,8 +77,12 @@
 				console.assert(idField);
 				this.db.collection(table).find(query).toArray( (err, list) => {
 					if(err) reject(err);
+					if( asRaw ) {
+						return resolve( list );
+					}
 					let recordHash = {};
 					let discards = 0;
+					//console.log('list=',list);
 					list.forEach( data => {
 						let record = this.serial.inject(null,data);
 						discards += record === undefined ? 1 : 0;
@@ -87,9 +91,8 @@
 							recordHash[data[idField]] = record;
 						}
 					});
-					console.logStorage('Loaded',list.length,className,'with '+discards+' discards');
-					//console.log('content:',single ? recordHash[query[idField]] : recordHash);
-					return resolve( single ? recordHash[query[idField]] : recordHash );
+					console.logStorage('Loaded',Object.keys(recordHash).length,'of',list.length,className,'with '+discards+' discards.');
+					return resolve( recordHash );
 				});
 			});
 		}
@@ -102,7 +105,34 @@
 			console.assert(meta);
 			let idField = meta.idField;
 			console.assert(idField);
-			return this._load( className, this.filter(idField,recordId), true );
+			let query = this.filter(idField,recordId);
+			let recordHash = await this._load( className, query );
+			return recordHash[query[idField]];
+		}
+		async loadWhere(className,query) {
+			return await this._load( className, query );
+		}
+		async convert(className) {
+			let meta = this.serial.getMeta(className);
+			console.assert(meta);
+			if( !meta.convert ) {
+				return -1;
+			}
+			let query = { '_version': { $lt: meta.version } };
+			//console.log('query=',query);
+			let rawHash = await this._load( className, query, true );
+			//console.log('rawHash = ', rawHash );
+			let count = 0;
+			if( rawHash.length > 0 ) {
+				console.log('Converting', className );
+				for( let raw of rawHash ) {
+					// WARNING: This is WAY slow, to do each one-by-one. Should do it as a batch...
+					let didOne = await meta.convert( raw._version, meta.version, raw );
+					count += didOne ? 1 : 0;
+				}
+				console.log('Converted', count, className );
+			}
+			return count;
 		}
 		save(obj) {
 			if( !this.db ) return obj;
@@ -110,8 +140,8 @@
 			if( !meta ) {
 				console.log( 'Failed to deduce meta for', obj );
 			}
-			console.log(meta);
-			console.log(obj);
+			//console.log(meta);
+			//console.log(obj);
 			
 			console.assert(meta);
 			let table = meta.table;

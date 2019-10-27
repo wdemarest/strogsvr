@@ -36,7 +36,6 @@
 
 		console.assert( config.siteUrl );
 		console.assert( config.contactEmail );
-		console.assert( Credential.admin.password );
 
 		let adminAccount = await storage.load( 'Account', Credential.admin.accountId );
 		if( !adminAccount ) {
@@ -91,13 +90,15 @@
 	}
 
 	Account.login = async function(req,res) {
-		let debug = true;
+		let debug = false;
 		let userName = req.body.userName;
 		let password = req.body.password;
+		if( !userName || !password ) {
+			return res.send( JSON.stringify({ result: 'failure', message: 'invalid username or password' }) );
+		}
+
 		console.log("Login", userName);
 		let credential = await storage.load( 'Credential', userName );
-
-		let account    = credential ? await storage.load( 'Account', credential.accountId ) : null;
 
 		if( debug ) {
 			console.log( "userName entered: ", userName );
@@ -108,24 +109,30 @@
 		let response = { result: 'failure' };
 
 		if( !credential ) {
-			response.message = 'Unable to load credential.';
+			response.message = 'Credential not found.';
 		} else
 		if( !userName ) {
 			response.message = 'No user name specified.';
 		} else
-		if( credential.password != password ) {
+		if( !Credential.match( credential, password ) ) {
 			response.message = 'Wrong password.';
 		} else
 		if( !credential.accountId ) {
 			response.message = 'Credential lacks an accountId.';
 		} else {
-			response.result = 'success';
-			response.message = 'Successful login.';
-			Account.loginActivate(req,res,account);
+			let account = await storage.load( 'Account', credential.accountId );
+			if( !account ) {
+				response.message = "Credential lacks matching account "+credential.accountId;
+			}
+			else {
+				response.result = 'success';
+				response.message = 'Successful login.';
+				Account.loginActivate(req,res,account);
+			}
 		}
 
 		console.log(response.message);
-		res.send( JSON.stringify(response) );
+		return res.send( JSON.stringify(response) );
 	}
 
 	Account.signup = async function(req,res) {
@@ -161,11 +168,9 @@
 			return res.send( { result: 'failure', message: 'Sorry that user name is already taken.' } );
 		}
 
-		let accountId = Math.uid();
-		credential = new Credential(userName,password,accountId);
-		storage.save( credential );
+		credential = await Credential.create(userName,password);
 
-		let account = new Account( accountId, {
+		let account = new Account( credential.accountId, {
 			userName: userName,
 			userEmail: userEmail,
 			isAdmin: false,
@@ -205,36 +210,54 @@
 
 	Account.forgot = async function(req,res) {
 		console.log(req.body);
-		let userName = req.body.userName;
+		let userName  = req.body.userName;
+		let userEmail = req.body.userEmail;
+
+		if( !userName ) {
+			return res.send( { result: 'failure', message: 'Blank username not allowed.' } );
+		}
+		if( !userEmail ) {
+			return res.send( { result: 'failure', message: 'Blank email not allowed.' } );
+		}
+		if( userName == Credential.admin.userName ) {
+			return res.send( { result: 'failure', message: 'Admin credentials may not be recovered.' } );
+		}
 		console.log( userName+' forgot pwd');
+
 		let credential = await storage.load( 'Credential', userName );
 		if( !credential ) {
 			return res.send( { result: 'failure', message: 'No such credentials.' } );
 		}
-		let account   = await storage.load( 'Account', credential.accountId );
+		let account = await storage.load( 'Account', credential.accountId );
 		if( !account ) {
 			return res.send( { result: 'failure', message: 'No such account.' } );
 		}
-		let userEmail = account.userEmail;
-		if( !userEmail ) {
-			return res.send( { result: 'failure', message: 'No email for this account.' } );
+		if( userEmail !== account.userEmail ) {
+			return res.send( { result: 'failure', message: 'No such account.' } );
 		}
-		let password  = credential.password;
+
+		// Since we salt, we can't tell them their password. We have to generate a new
+		// one for them.
+		let tempPassword = Math.uid().substr(7);
+		await Credential.overwrite( credential.userName, tempPassword, credential.accountId );
 
 		Emailer.send(
-			userEmail,
-			"Strog Games login info for "+userName,
-			"As you requested, here is your Strog Games login information.\n"+
-			"\n"+
-			"User Name: "+userName+"\n"+
-			"Password:  "+password+"\n"+
-			"\n"+
-			"If you ever have any other questions or issues, please don't hesitate to email me at "+config.contactEmail+"\n"+
-			"\n"+
-			"Happy Gaming!\n",
+			credential.userEmail,
+			"Lost password for strog.com",
+`
+Hi ${userName}!
+
+Sorry to hear you forgot your password. Here is a new one.
+
+Website:   http://strog.com
+User Name: ${userName}
+Password:  ${tempPassword}
+
+If you did not ask for your password to be reset, please email us ASAP!
+
+Thank you for being part of the Strog family!
+`,
 			function(result) {
-				account.reminderEmail = result;
-				storage.save( account );
 				res.send( result );
 			}
 		);
