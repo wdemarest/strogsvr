@@ -22,6 +22,7 @@
 		};
 
 		Object.assign( app.accessNoAuthRequired, {
+			'/nav.css': 1,
 			'/index.html': 1,
 			'/welcome.html': 1,
 			'/unathorized.html': 1,
@@ -31,28 +32,20 @@
 		let express = require('express');
 		app.use(  "/image", express.static(Path.join(__dirname, './image')));
 
+		app.get( '/', function(req,res,next) {
+			res.redirect('/index.html');
+		});
+
 		app.get( "/logout.html", function(req,res) {
 			console.log('User '+req.session.userName+' logged out.');
 			req.session.destroy();
 			res.redirect('/index.html');
 		});
 
-		app.get( "/buy.html", function(req,res) {
-			const src = Fs.createReadStream('./site/buy.html');
-			src.pipe(res);
-		});
-
-		app.get( '/', function(req,res,next) {
-			res.redirect('/index.html');
-		});
-
-		app.get( '/index.html', function(req,res,next) {
-			const src = Fs.createReadStream('./site/index.html');
-			src.pipe(res);
-		});
-
-		app.get( '/unauthorized.html', function(req,res,next) {
-			const src = Fs.createReadStream('./site/unauthorized.html');
+		app.get( "/*.(html|css|js)", function(req,res) {
+			let fileName = req.params[0].replace(/\./g,'');
+			let fileExt  = req.params[1].replace(/\./g,'');
+			const src = Fs.createReadStream('./site/'+fileName+'.'+fileExt);
 			src.pipe(res);
 		});
 	}

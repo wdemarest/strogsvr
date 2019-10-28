@@ -9,7 +9,7 @@ export connect="ssh ubuntu@strog.com -i ~/.ssh/strog.pem"
 if [ "$1" != "deploy" ] && [ "$1" != "config" ] && [ "$1" != "stop" ] && [ "$1" != "start" ] && [ "$1" != "restart" ] && [ "$1" != "status" ] && [ "$1" != "update" ] && [ "$1" != "log" ] && [ "$1" != "logcache" ] && [ "$1" != "login" ] && [ "$1" != "fetch" ] && [ "$1" != "dev" ]
 then
 echo "svr takes one of the following parameters:"
-echo "* deploy   [strogsrv|candyhop|reactorRescue|shadowStone]  - deploys to and overwrites server"
+echo "* deploy   [strogsrv|candyhop|reactorRescue|shadowStone|turmoil]  - deploys to and overwrites server"
 echo "* config   [strogsrv|shadowStone]  - copies config.production.secret.hjson to server"
 echo "* log      [strogsvr|shadowStone]  - emits the last 100 log entries from the server"
 echo "* logcache [strogsvr|shadowStone]  - copies the remote log file to ./logcache, overwriting"
@@ -40,25 +40,32 @@ fi
 if [ "$1" == "deploy" ] && [ "$2" == "strogsvr" ]
 then
 echo Deploying from github.com/wdemarest/strogsvr to strog.com
-$connect "cd ~/strogsvr ; git fetch --all ; git reset --hard origin/master ; npm install"
+$connect "cd ~/strogsvr ; git fetch --all ; git reset --hard origin/master ; npm install ; npm audit fix"
+echo NOTE: If you changed the config be sure to svr config strogsvr
 fi
 
 if [ "$1" == "deploy" ] && [ "$2" == "candyhop" ]
 then
 echo Deploying from github.com/wdemarest/candyhop to strog.com
-$connect "cd ~/candyhop ; git fetch --all ; git reset --hard origin/master ; npm install"
+$connect "cd ~/candyhop ; git fetch --all ; git reset --hard origin/master ; npm install ; npm audit fix"
 fi
 
 if [ "$1" == "deploy" ] && [ "$2" == "reactorRescue" ]
 then
 echo Deploying from github.com/wdemarest/reactorRescue to strog.com
-$connect "cd ~/reactorRescue ; git fetch --all ; git reset --hard origin/master ; npm install"
+$connect "cd ~/reactorRescue ; git fetch --all ; git reset --hard origin/master ; npm install ; npm audit fix"
 fi
 
 if [ "$1" == "deploy" ] && [ "$2" == "shadowStone" ]
 then
 echo Deploying from github.com/wdemarest/shadowStone to strog.com
-$connect "cd ~/shadowStone ; git fetch --all ; git reset --hard origin/master ; npm install"
+$connect "cd ~/shadowStone ; git fetch --all ; git reset --hard origin/master ; npm install ; npm audit fix"
+fi
+
+if [ "$1" == "deploy" ] && [ "$2" == "turmoil" ]
+then
+echo Deploying from github.com/wdemarest/turmoil to strog.com
+$connect "cd ~/turmoil ; git fetch --all ; git reset --hard origin/master"
 fi
 
 if [ "$1" == "config" ] && [ "$2" == "strogsvr" ]

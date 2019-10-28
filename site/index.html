@@ -3,6 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="google-site-verification" content="tPXb8rJRA5LFMef9gOHR9Ve0D-ztOHT6uu9_UhVBt9s" />
+<meta name="description" content="Video and board games created by 14 year old game designer Will Demarest. Try one today!" />
+<meta property="og:title" content="Strog Games">
+<meta property="og:description" content="Video and board games created by 14 year old game designer Will Demarest. Try one today!">
+<meta property="og:image" content="http://strog.com/image/strogLogoBlackLarge.jpg">
+<meta property="og:url" content="http://strog.com">
+<meta name="twitter:title" content="Strog Games">
+<meta name="twitter:description" content="Video and board games created by 14 year old game designer Will Demarest. Try one today!">
+<meta name="twitter:image" content="http://strog.com/image/strogLogoBlackLarge.jpg">
 <title>Strog Entertainment</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -10,52 +18,12 @@
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap-theme.min.css">
 <link rel="stylesheet" href="//code.cdn.mozilla.net/fonts/fira.css">
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+<link rel="stylesheet" href="nav.css">
 
 <style>
-	/* Space out content a bit */
-body {
-  background-color: #131313;
-  color: white;
-}
-
-.main {
-	background-image: url(image/bg.jpg);
-}
-
-a.logo img {
-	height: 60px;
-	visibility: hidden;
-}
-
-a.logo {
-	padding-left: 4px;
-	padding-right: 4px;
-	border-radius: 6px;
-	background: url(image/strogLogoGradients.png) no-repeat center center;
-	background-size: contain;
-	display: inline-block;
-	transition: all 0.2s ease-out;
-}
-
-a.logo:hover {
-	text-decoration: none;
-	transition: all 0.2s ease-in;
-	background: url(image/strogLogoWhiteNoCircle.png) no-repeat center center;
-	background-size: contain;
-}
-
-.mainPage h2 {
-	font-family: futura;
-	color: #aaa;
-}
-
-.modal-title, .modal-body, .textBlack {
-  color: black;
-}
-
 .gameRow {
 }
 
@@ -67,7 +35,120 @@ a.logo:hover {
 	position: relative;
 }
 
-.centerContent {
+.turmoilFeature {
+	width: 100%;
+	height: 50vw;
+	padding: 0px;
+	background-color: white;
+}
+
+.turmoilFeature img {
+	width: 100%;
+}
+
+.turmoilFeature .turmoilLearnMore {
+	position: absolute;
+	bottom: 37%;
+	left: 36%;
+	font-size: 3vw;
+	font-family: "arial";
+	border-radius: 8px;
+
+	border:1px solid #666;
+	padding: 0px 20px 0px 20px;
+	text-decoration:none;
+	font-weight: normal;
+	color: black;
+	background-color: #ffc579;
+	background: linear-gradient(to right, #8e8e8e 0%,#e1e1e1 51%,#9b9b9b 100%);
+}
+
+.turmoilFeature .turmoilLearnMore:hover {
+	background-color: rgba( 212, 175, 55, 0.9);
+	background-image: linear-gradient(to bottom, #ffc579, #fb9d23);
+}
+
+.turmoilFeature .turmoilNotice {
+	position: absolute;
+	bottom: 28%;
+	left: 12%;
+	font-size: 1.8vw;
+	font-family: "arial";
+}
+
+.turmoilFeature .turmoilBlurb {
+	position: absolute;
+	bottom: 3%;
+	left: 7%;
+	margin-left: 10%;
+	margin-right: 20%;
+	font-size: 2vw;
+	font-family: "arial";
+	text-align: center;
+	color: #333;
+}
+
+.tickleForm {
+	position: absolute;
+	bottom: 16%;
+	left: 22%;
+	width: 60%;
+	font-size: 3vw;
+	font-family: "arial";
+	color: #aaa;
+}
+
+.tickleStyle input {
+	width: 80%;
+}
+
+#tickleSafeMessage {
+	color: #d4b930;
+	font-size: 1.2vw;
+	font-style: italic;
+}
+
+#tickleFailMessage {
+	color: red;
+	font-size: 1.2vw;
+	font-style: italic;
+}
+
+#tickleSuccessMessage {
+	display: none;
+	color: #60dc60;
+	position: absolute;
+	bottom: 18%;
+	left: 22%;
+	width: 60%;
+	font-size: 2vw;
+	font-family: "arial";
+}
+
+.tickleStyle input, .tickleStyle button {
+	font-size: 2.2vw;
+	font-family: "arial";
+	color: #444;
+	border-radius: 6px;
+	border-style: solid;
+	border: 2px solid #bbb;
+}
+
+.tickleStyle button:hover {
+	background-color: gold;
+}
+
+.tickleStyle input {
+	padding-left: 1vw;
+}
+
+.tickleStyle input:hover {
+	border-color: gold;
+}
+
+.tickleStyle input::placeholder {
+	color: #ccc;
+	font-size: 1.5vw;
 	text-align: center;
 }
 
@@ -230,6 +311,27 @@ a.logo:hover {
     text-shadow: -1px -1px 0 #acbccc, 1px -1px 0 #acbccc, -1px 1px 0 #acbccc, 1px 1px 0 #acbccc;
 }
 
+.turmoil {
+	background-image: url("image/turmoilBg.png");
+	background-size: contain;
+	border: 4px solid gray;
+}
+
+.turmoil img {
+	width: 60%;
+	margin-left: 10%;
+	margin-top: 10%;
+	display: block;
+	position: absolute;
+}
+
+.textTurmoil {
+	font-family: "impact";
+    color: #bbb;
+    text-shadow: -1px -1px 0 #333, 1px -1px 0 #333, -1px 1px 0 #333, 1px 1px 0 #333;
+}
+
+
 .fadedShadows {
 	font-weight: bold;
 	font-family: "luminari";
@@ -262,6 +364,10 @@ a.logo:hover {
 	animation-delay: 2s;
 }
 
+.delay3 {
+	animation-delay: 3s;
+}
+
 @keyframes slide-left {
   from {
     margin-left: 100%;
@@ -276,68 +382,6 @@ a.logo:hover {
   }
 }
 
-nav a {
-	cursor: pointer;
-}
-
-/* Everything but the jumbotron gets side spacing for mobile first views */
-.header,
-.marketing,
-.footer {
-  padding-right: 15px;
-  padding-left: 15px;
-}
-
-/* Custom page header */
-.header {
-	margin-top: 10px;
-	margin-bottom: 20px;
-	border-bottom: 0px solid #e5e5e5;
-}
-/* Make the masthead heading the same height as the navigation */
-.header h3 {
-  margin-top: 0;
-  margin-bottom: 0;
-  line-height: 40px;
-}
-
-/* Custom page footer */
-.footer {
-  padding-top: 19px;
-  color: #777;
-  border-top: 1px solid #e5e5e5;
-}
-
-/* Main marketing message and sign up button */
-.jumbotron {
-  text-align: center;
-  border-bottom: 1px solid #e5e5e5;
-}
-.jumbotron .btn {
-  padding: 14px 24px;
-  font-size: 21px;
-}
-
-/* Responsive: Portrait tablets and up */
-@media screen and (min-width: 768px) {
-  /* Remove the padding we set earlier */
-  .header,
-  .marketing,
-  .footer {
-    padding-right: 0;
-    padding-left: 0;
-  }
-
-  /* Remove the bottom border on the jumbotron for visual effect */
-  .jumbotron {
-    border-bottom: 0;
-  }
-}
-
-.ctr {
-	float: none;
-	margin: auto;
-}
 
 .shadowStoneText {
 	font-size: 3.5vw;
@@ -349,6 +393,9 @@ nav a {
 let Cookie = {
 	set: function(name,value,days) {
 		var expires = "";
+		if( days === undefined ) {
+			days = 365*10;
+		}
 		if (days) {
 			var date = new Date();
 			date.setTime(date.getTime() + (days*24*60*60*1000));
@@ -379,6 +426,8 @@ function logout() {
 		data: {},
 		success: function() {
 			window.location = 'index.html';
+			location.reload();
+			navTweak();
 		},
 		error: function(jqXHR, textStatus) {
 			alert(textStatus);
@@ -386,6 +435,61 @@ function logout() {
 	});
 
 }
+
+function tickleSubmit() {
+	let self = this;
+
+	function enable(state) {
+		$(self).find('.form-bit').prop('disabled', !state);
+		$(self).find('button[type="submit"]').prop('disabled', !state);
+		$(self).find('.fa-spin').toggleClass('hidden',state);
+	}
+
+	try {
+		enable(false);
+		let data = {}
+		let form = $(self).find('.form-bit');
+		$.each(form,function(index,value) {
+			data[value.name] = $(value).val();
+		});
+
+		function failure(message) {
+			$('#tickleSafeMessage').hide();
+			$('#tickleFailMessage').show().text(message);
+			enable(true);
+		}
+
+		function success(response) {
+			let r = typeof response == 'string' ? JSON.parse(response) : response;
+			if( r.result == 'success' ) {
+				$(self).find('.fa-spin').toggleClass('hidden',false);
+				$('#tickleFailMessage').hide();
+				$('#tickleSafeMessage').hide();
+				$('.tickleFormFields').hide();
+				$('#tickleSuccessMessage').show();
+				return;
+			}
+			failure(r.message);
+		}
+
+		$.ajax({
+			url: '/tickleAdd',
+			method: 'POST',
+			contentType:"application/json; charset=utf-8",
+			data: JSON.stringify(data),
+			success: success,
+			error: function(jqXHR, textStatus) {
+				failure(textStatus);
+			}
+		});
+
+	}
+	catch(e) {
+		debugger;
+	}
+	return false;
+}
+
 
 function signupSubmit() {
 	let self = this;
@@ -406,7 +510,7 @@ function signupSubmit() {
 
 		function failure(message) {
 			$('#signup-failure').modal('show');
-			$('#failMessage').text(message);
+			$('#signupFailMessage').text(message);
 			enable(true);
 		}
 
@@ -458,7 +562,7 @@ function loginSubmit() {
 
 		function failure(message) {
 			$('#login-failure').modal('show');
-			$('#failMessage').text(message);
+			$('#loginFailMessage').text(message);
 			enable(true);
 		}
 
@@ -490,7 +594,7 @@ function loginSubmit() {
 	return false;
 }
 
-function forgot(userName) {
+function forgot(userName,userEmail) {
 	if( !userName ) {
 		return alert( "Please enter your username." );
 	}
@@ -499,10 +603,10 @@ function forgot(userName) {
 		url: '/forgot',
 		method: 'POST',
 		contentType:"application/json; charset=utf-8",
-		data: JSON.stringify({userName:userName}),
+		data: JSON.stringify({userName:userName,userEmail:userEmail}),
 		success: function(result) {
 			if( result.status == 'success' ) {
-				alert( "We just sent an email with your login information. It might take a while to arrive, and don't forget to check your spam folder!");
+				alert( "We just sent an email to help reset your password. It might take a while to arrive, and don't forget to check your spam folder!");
 			}
 			else {
 				alert( "Error: The Strog Entertainment server said '"+JSON.stringify(result) );
@@ -514,9 +618,22 @@ function forgot(userName) {
 	});
 }
 
+function navTweak() {
+	let userName = Cookie.get( 'userName' );
+	let isTemp   = Cookie.get( 'isTemp' );
+	isTemp = !(isTemp=='false' || isTemp=='null' || isTemp=='0' || isTemp=='' || isTemp=='undefined');
+	let isFullUser = userName && !isTemp;
+	$('.userName').html( userName );
+	$('#navLogin').toggle( !isFullUser )
+	$('#navSignup').toggle( !isFullUser )
+	$('#navLogout').toggle( isFullUser )
+}
+
 function main() {
 	console.log('Starting page.');
-	$('.userName').html( Cookie.get( 'userName' ) );
+	$('#navLogout').on('click',()=>{logout();});
+	navTweak();
+	$('.tickleStyle input').focus();
 	setInterval( ()=>{
 		let a = 1;
 	}, 0.5*1000 );
@@ -606,10 +723,10 @@ $(document).ready( main );
 				<h4 class="modal-title">Thanks for signing up!</h4>
 			</div>
 			<div class="modal-body">
-				<p>You are nearly ready to play.</p>
+				<p>You are ready to play.</p>
 			</div>
 			<div class="modal-footer">
-				<a type="button" class="btn btn-primary" href="/buy.html">Continue</a>
+				<a type="button" class="btn btn-primary" href="/index.html">Continue</a>
 			</div>
 		</div>
 	</div>
@@ -622,7 +739,7 @@ $(document).ready( main );
 			</div>
 			<div class="modal-body">
 				<p>Sorry, but your signup did not succeed.</p>
-				<p id='failMessage'></p>
+				<p id='signupFailMessage'></p>
 			</div>
 			<div class="modal-footer">
 				<button type="button" class="btn btn-default" data-dismiss="modal">Try Again</button>
@@ -705,7 +822,7 @@ $(document).ready( main );
 			</div>
 			<div class="modal-body">
 				<p>Sorry, but your login did not succeed.</p>
-				<p id='failMessage'></p>
+				<p id='loginFailMessage'></p>
 			</div>
 			<div class="modal-footer">
 				<button type="button" class="btn btn-default" data-dismiss="modal">Try Again</button>
@@ -714,36 +831,50 @@ $(document).ready( main );
 		</div>
 	</div>
 </div>
+
+<!-- MAIN WEB PAGE -->
 <div class="main">
 	<div class="container">
 		<div class="header clearfix">
-			<div class="pull-right">
-				<span class="nav userName"></span>
+			<div class="nav pull-right">
+				<span><span class="userIcon"><i class="fa fa-user-circle"></i></span><span class="userName"></span></span>
 			</div>
 			<nav>
 				<ul class="nav nav-pills pull-right">
-					<li role="presentation"><a data-toggle="modal" data-target="#signup-dialog">Signup</a></li>
-					<li role="presentation"><a data-toggle="modal" data-target="#login-dialog">Login</a></li>
+					<li id="navLogin" role="presentation"><a data-toggle="modal" data-target="#signup-dialog">Signup</a></li>
+					<li id="navSignup" role="presentation"><a data-toggle="modal" data-target="#login-dialog">Login</a></li>
+					<li id="navLogout" role="presentation"><a data-toggle="modal">Logout</a></li>
 				</ul>
 			</nav>
-			<a class="logo" href="index.html"><img src="image/strogLogoGradients.png"></a>
+			<a class="logo" href="index.html"><img src="image/strogLogoBlack.png"></a>
 		</div>
 	</div>
 	<div class="container mainPage">
 		<div class="row">
-			<div class="col-md-12 shadowStoneFeature">
-				<img src="image/shadowStoneFeature.png">
-				<h4>Shadow Stone</h4>
-				<a href="/shadowStone/index.html">Play the Beta Now</a>
-				<!--div class="shadowStoneFrame">
-					<iframe src="../../shadowStone/replay.html?timeline=shortgame">
-					</iframe>
-				</div-->
-				<h5>Something New in the Dark...</h5>
+			<div class="col-md-12 turmoilFeature">
+				<a href="/turmoil"><img src="image/turmoilFeature.png"></a>
+				<div class="turmoilNotice">If you want to know when the full release happens, enter your email below!</div>
+				<a class="turmoilLearnMore" href="/turmoil">Learn More!</a>
+				<form class="tickleForm" onsubmit="return tickleSubmit.apply(this,[]);">
+					<fieldset class="tickleFormFields tickleStyle">
+						<input name="userEmail" class="form-bit" autocapitalize="off" placeholder="Your email here" type="text" required>
+						<input name="note" class="form-bit" value="turmoil" type="text" style="display:none;">
+						<button type="submit" class="form-bit">
+						<span><i class="fa fa-refresh fa-spin hidden"></i><i class="fa fa-check"></i></span>
+						</button>
+						<div id="tickleSafeMessage">We won't spam you, or share your email with anyone, ever.</div>
+						<div id="tickleFailMessage"></div>
+					</fieldset>
+				</form>
+				<div id="tickleSuccessMessage">Thanks! We will email you when Turmoil is available!</div>
+
+				<div class="turmoilBlurb">Coming to the <a target="_blank" href="https://www.childrensbusinessfair.org/austin">Acton Children’s Business Fair</a>, October 26th 10am-1pm, in central Austin at 1606 Niles Road!</div>
 			</div>
 		</div>
+	</div>
+	<div class="container">
 		<div class="row">
-			<h2>Games</h2>
+			<h2>Video Games</h2>
 		</div>
 		<div class="row gameRow">
 			<div class="col-xs-6 col-sm-4 gameBox">
@@ -766,6 +897,35 @@ $(document).ready( main );
 					<div class="btn-lg gameTitle slide-left delay2 textReactorRescue">Reactor Rescue</div>
 					<!--a class="btn btn-info btn-lg gamePlayButton" href="/reactorRescue/index.html">Play</a-->
 				</a>
+			</div>
+		</div>
+	</div>
+	<div class="container">	
+		<div class="row">
+			<h2>Board Games</h2>
+		</div>
+		<div class="col-xs-6 col-sm-4 gameBox">
+			<a class="gameFrame turmoil" href="/turmoil/index.html">
+				<img src="image/turmoilCards.png">
+				<div class="btn-lg gameTitle slide-left delay3 textTurmoil">TURMOIL</div>
+				<!--a class="btn btn-info btn-lg gamePlayButton" href="/reactorRescue/index.html">Play</a-->
+			</a>
+		</div>
+	</div>
+	<div class="container">
+		<div class="row">
+			<h2>Products in Beta</h2>
+		</div>
+		<div class="row">
+			<div class="col-md-12 shadowStoneFeature">
+				<img src="image/shadowStoneFeature.png">
+				<h4>Shadow Stone</h4>
+				<a href="/shadowStone/index.html">Play the Beta Now</a>
+				<!--div class="shadowStoneFrame">
+					<iframe src="../../shadowStone/replay.html?timeline=shortgame">
+					</iframe>
+				</div-->
+				<h5>Something New in the Dark...</h5>
 			</div>
 		</div>
 	</div>

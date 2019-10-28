@@ -14,18 +14,22 @@ let Serial        = require('./serial.js');
 let Config        = require('./config.js');
 
 // Plugins
+let Umbrella      = require('./umbrella.js');
+let Credential    = require('./credential.js');
 let Account       = require('./account.js');
 let Emailer       = require('./emailer.js');
+let Tickle        = require('./tickle.js');
 let Payment       = require('./payment.js');
 let CandyHop      = require('./candyHop.js');
 let ReactorRescue = require('./reactorRescue.js');
+let Turmoil       = require('./turmoil.js');
 let Ops           = require('./ops.js');
 let Site          = require('./site.js');
 let Security      = require('./security.js');
 
 let Proxy         = require('http-proxy-middleware');
 
-let plugins = [Account, Emailer, Payment, CandyHop, ReactorRescue, Ops, Site];
+let plugins = [Umbrella, Credential, Account, Emailer, Tickle, Payment, CandyHop, ReactorRescue, Turmoil, Ops, Site];
 
 var Debug = new DebugProxy({
 	comms: false,
@@ -36,26 +40,25 @@ var Debug = new DebugProxy({
 
 let app = express();
 
-
-function serverStart(port,sitePath,localUrl,session,storage) {
+function serverStart(port,sitePath,localShadowStoneUrl,sessionMaker,storage) {
 	port = port || 80;
 	sitePath = sitePath || '.';
 	app.accessNoAuthRequired = {};
 	app.accessAdminOnly = {};
 
-	console.log("\n\n"+(new Date()).toISOString()+" Serving "+sitePath+" on "+port);
+	console.log((new Date()).toISOString()+" Serving "+sitePath+" on "+port);
 
-	let wsProxy = Proxy({
-		target: localUrl
+	let wsProxyShadowStone = Proxy({
+		target: localShadowStoneUrl
 	});
 
 	let security = new Security();
 
 	app.use( security.filter.bind(security) );
 
-	app.use( '/shadowStone', wsProxy );
+	app.use( '/shadowStone', wsProxyShadowStone );
 
-	app.use( session );
+	app.use( sessionMaker );
 
 	app.use( function tellRequest( req, res, next ) {
 		let ignore = { image:1, images:1, sound:1, sounds:1 }
@@ -73,11 +76,32 @@ function serverStart(port,sitePath,localUrl,session,storage) {
 
 	app.use( Site.ensureAuthenticated );
 
-	app.use( function( req, res, next ) {
-		if( !req.cookies.accountId || req.cookies.accountId=='undefined' ) {
+	app.use( async function( req, res, next ) {
+		// IMPORTANT: The browser might not support cookies, or might have them turned off,
+		// so we want to pull the session's accountId if there is no cookie.
+		let accountId = req.cookies.accountId || req.session.accountId;
+		let accountIdBlank = !accountId || accountId=='undefined' || accountId=='null' || accountId=='0';
+
+		if( !accountIdBlank && (!req.session || !req.session.accountId) ) {
+			// The user is making a claim as to his account, but we haven't
+			// established a session yet for this user...
+			console.log('New Connection: Account', accountId);
+			let account = await storage.load( 'Account', accountId );
+			if( account ) {
+				Account.loginActivate(req,res,account);
+			}
+			if( !account ) {
+				console.log('Account unknown. Setting blank.');
+				accountId = null;
+				accountIdBlank = true;	// So a temp username gets made.
+			}
+		}
+
+		if( accountIdBlank ) {
 			let ip = req.connection.remoteAddress;
-			console.log('New temp account requested for IP', ip, 'User-Agent', req.headers['user-agent']);
-			let account = Account.createTemp();
+			let ua = req.headers['user-agent'];
+			console.log('Temp Account needed for:', ip, 'User-Agent',ua);
+			let account = await Account.createTemp();
 			storage.save( account );
 			Account.loginActivate(req,res,account);
 		}
@@ -87,20 +111,24 @@ function serverStart(port,sitePath,localUrl,session,storage) {
 	app.use( function( req, res, next ) {
 		//console.log('setupLocals');
 		//console.log( req.session );
-		res.cookie( 'accountId', req.session ? req.session.accountId : null);
-		res.cookie( 'userName', req.session ? req.session.userName : null);
-		res.cookie( 'userEmail', req.session ? req.session.userEmail : null);
-		res.cookie( 'isAdmin', req.session ? req.session.isAdmin : null);
-		res.cookie( 'isReal', req.session ? req.session.isReal : null);
+		if( req.session && req.cookies.accountId !== req.session.accountId ) {
+			let exp = new Date(Date.now() + 2*365*24*60*60*1000);
+			res.cookie( 'accountId', req.session.accountId, { expires: exp } );
+			res.cookie( 'userName', req.session.userName, { expires: exp } );
+			res.cookie( 'userEmail', req.session.userEmail, { expires: exp } );
+			res.cookie( 'isAdmin', req.session.isAdmin, { expires: exp } );
+			res.cookie( 'isTemp', req.session.isTemp, { expires: exp } );
+		}
 		return next();
 	});
 
 	// PLUGIN ONINSTALLROUTES
+	console.log('Installing plugin routes.');
 	plugins.forEach( plugin => plugin.onInstallRoutes ? plugin.onInstallRoutes(app) : 0 );
 
 	//app.theServer = http.createServer(app);
 	app.theServer = app.listen(port);
-	app.theServer.on('upgrade', wsProxy.upgrade)
+	app.theServer.on('upgrade', wsProxyShadowStone.upgrade);
 }
 
 let serverShutdown = function() {
@@ -130,15 +158,20 @@ async function main() {
 		domain: config.redisDomain
 	});
 	await redisSessionMaker.open();
-	let session = redisSessionMaker.create();
+	let sessionMaker = redisSessionMaker.create();
 
 	let appContext = {
 		config:  config,
 		storage: storage
 	};
-	plugins.forEach( plugin => plugin.onInit ? plugin.onInit(appContext) : 0 );
+	console.log('Loading',plugins.length,'plugins.');
+	for( plugin of plugins ) {
+		if( plugin.onInit ) {
+			await plugin.onInit(appContext);
+		}
+	};
 
-	serverStart( config.port, config.sitePath, config.shadowStoneLocalUrl, session, storage );
+	serverStart( config.port, config.sitePath, config.shadowStoneLocalUrl, sessionMaker, storage );
 }
 
 

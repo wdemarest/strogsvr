@@ -28,4 +28,23 @@
 		return obj;
 	};
 
+	Date.standard = function(dateTime = new Date()) {
+		let m = dateTime;
+		let dateString =
+			m.getFullYear() + "/" +
+			("0" + (m.getMonth()+1)).slice(-2) + "/" +
+			("0" + m.getDate()).slice(-2) + " " +
+			("0" + m.getHours()).slice(-2) + ":" +
+			("0" + m.getMinutes()).slice(-2) + ":" +
+			("0" + m.getSeconds()).slice(-2);
+		return dateString;
+	}
+
+	let consoleLog = console.log;
+	console.logPrior = consoleLog;
+	console.log = function(...args) {
+		let dateTime = Date.standard();
+		return consoleLog('['+dateTime+']',...args);
+	}
+
 })();
