@@ -40,6 +40,11 @@
 	height: 35vw;
 	padding: 0px;
 	background-color: white;
+	border:4px solid #fff;
+}
+
+.turmoilFeature:hover {
+	border:1px solid #ddd;
 }
 
 .turmoilFeature img {
@@ -734,10 +739,12 @@ $(document).ready( main );
 	</div>
 	<div class="container mainPage">
 		<div class="row">
-			<div class="col-md-12 turmoilFeature">
-				<a href="/turmoil"><img src="image/turmoilFeature.png"></a>
-				<a class="turmoilLearnMore" href="/turmoil">Learn More!</a>
-			</div>
+			<a href="/turmoil">
+				<div id="tumoilPoster" class="col-md-12 turmoilFeature">
+					<img src="image/turmoilFeature.png">
+					<div class="turmoilLearnMore">Learn More</div>
+				</div>
+			</a>
 		</div>
 	</div>
 	<div class="container">
