@@ -1,10 +1,10 @@
 {
-	"name": "CandyHop",
-	"version": "1.0.0",
-	"description": "CandyHop delightful candy hopping game.",
+	"name": "Strogsvr",
+	"version": "0.1.0",
+	"description": "Strogsvr the main Strog game web server.",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/wdemarest/candyhop.git"
+		"url": "https://github.com/wdemarest/strogsvr.git"
 	},
 	"dependencies": {
 		"body-parser": "^1.19.0",
@@ -12,6 +12,7 @@
 		"cookie-parser": "^1.4.4",
 		"express": "^4.12.3",
 		"express-session": "^1.16.1",
+		"gmail-send": "^1.8.10",
 		"hjson": "^3.1.2",
 		"http-proxy-middleware": "^0.19.1",
 		"iplocation": "^6.1.0",
@@ -27,6 +28,6 @@
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1"
 	},
-	"author": "Will Demarest",
+	"author": "Ken Demarest",
 	"license": "ISC"
 }

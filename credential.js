@@ -53,6 +53,12 @@
 		}
 	}
 
+// next step in password recovery is to make it so that there are a bunch of uids, with
+// expiration dates, and a command of "what to do". When a user clicks a link like
+// http://strog.com?action=chf4Rh2Sw it will take action like "allow password reset"
+// { action: 'chf4Rh2Sw', expires: '2019-11-01 14:15', action: 'passwordReset', account: 'whatever' }
+
+
 	Credential.convert = async function(from,to,raw) {
 		if( from == 1 && to == 2 ) {
 			Credential.overwrite( raw.userName, raw.password, raw.accountId );
