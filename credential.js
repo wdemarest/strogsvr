@@ -77,9 +77,10 @@
 			credential._version = 2;
 		}
 		if( credential._version == 2 ) {
+			console.log('Converting',credential);
 			console.assert(credential.accountId);
 			credential.userEmail = credential.accountId=='admin' ? 'admin' : await Credential.getEmailFromAccountId( credential.accountId );
-			console.assert(credential.userEmail);
+			credential.userEmail = credential.userEmail || 'unknown';
 			delete credential.userName;
 			credential._version = 3;
 		}

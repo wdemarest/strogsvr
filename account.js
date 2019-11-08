@@ -46,8 +46,8 @@
 		Credential = _context.Credential;
 
 		Credential.getEmailFromAccountId = async function(accountId) {
-			let a = await storage.load('Account',accountId);
-			return a.userEmail;
+			let account = await storage.load('Account',accountId);
+			return account ? account.userEmail : null;
 		}
 
 		console.assert( config && storage && Glyph && Emailer && Credential );
