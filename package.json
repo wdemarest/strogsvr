@@ -10,6 +10,8 @@
 		"body-parser": "^1.19.0",
 		"connect-redis": "^3.4.1",
 		"cookie-parser": "^1.4.4",
+		"email-deep-validator": "^3.3.0",
+		"email-validator": "^2.0.4",
 		"express": "^4.12.3",
 		"express-session": "^1.16.1",
 		"gmail-send": "^1.8.10",

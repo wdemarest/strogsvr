@@ -11,7 +11,7 @@
 <meta name="twitter:title" content="Strog Games">
 <meta name="twitter:description" content="Video and board games created by 14 year old game designer Will Demarest. Try one today!">
 <meta name="twitter:image" content="http://strog.com/image/strogLogoBlackLarge.jpg">
-<title>Strog Entertainment</title>
+<title>Strog Games</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <link href="https://fonts.googleapis.com/css?family=Comfortaa" rel="stylesheet">
@@ -21,6 +21,7 @@
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fingerprintjs2@2.1.0/dist/fingerprint2.min.js"></script>
 <link rel="stylesheet" href="nav.css">
 
 <style>
@@ -482,28 +483,104 @@ function loginSubmit() {
 	return false;
 }
 
-function forgot(userName,userEmail) {
-	if( !userName ) {
-		return alert( "Please enter your username." );
+function forgot(userEmail) {
+	if( !userEmail ) {
+		return alert( "Please enter your email." );
 	}
 	
 	$.ajax({
 		url: '/forgot',
 		method: 'POST',
 		contentType:"application/json; charset=utf-8",
-		data: JSON.stringify({userName:userName,userEmail:userEmail}),
+		data: JSON.stringify({userEmail:userEmail}),
 		success: function(result) {
-			if( result.status == 'success' ) {
+			if( result.result == 'success' ) {
 				alert( "We just sent an email to help reset your password. It might take a while to arrive, and don't forget to check your spam folder!");
 			}
 			else {
-				alert( "Error: The Strog Entertainment server said '"+JSON.stringify(result) );
+				alert( "Error: The Strog Games server said '"+JSON.stringify(result) );
 			}
 		},
 		error: function(jqXHR, textStatus) {
 			alert( "Unable to send email.\n"+textStatus);
 		}
 	});
+	return false;
+}
+
+function resetSubmit() {
+	let self = this;
+
+	let data = {}
+	let form = $(self).find('.form-control');
+	$.each(form,function(index,value) {
+		data[value.name] = $(value).val();
+	});
+
+	let uid = urlToJson().g;
+	
+	try {
+		$.ajax({
+			url: '/reset',
+			method: 'POST',
+			contentType:"application/json; charset=utf-8",
+			data: JSON.stringify({
+				uid: uid,
+				password: data.password,
+				confirmation: data.confirmation
+			}),
+			success: function(result) {
+				if( result.result == 'success' ) {
+					alert( result.message );
+					$('#reset-dialog').modal('hide');
+				}
+				else {
+					alert( "Error: The Strog Games server said '"+JSON.stringify(result) );
+				}
+			},
+			error: function(jqXHR, textStatus) {
+				alert( "Unable to complete operation.\n"+textStatus);
+			}
+		});
+	}
+	catch(e) {
+		debugger;
+	}
+	return false;
+}
+
+
+function urlToJson() {
+	let regex = /[?&]([^=#]+)=([^&#]*)/g;
+	let url = window.location.href;
+	let params = {};
+	let match;
+	while(match = regex.exec(url)) {
+		params[match[1]] = match[2];
+	}
+	return params;
+}
+
+String.prototype.hashCode = function() {
+  var hash = 0, i, chr;
+  if (this.length === 0) return hash;
+  for (i = 0; i < this.length; i++) {
+    chr   = this.charCodeAt(i);
+    hash  = ((hash << 5) - hash) + chr;
+    hash |= 0; // Convert to 32bit integer
+  }
+  return hash;
+};
+
+function ajaxLoad(url,fn) {
+	var xhttp = new XMLHttpRequest();
+	xhttp.onreadystatechange = function() {
+		if (this.readyState == 4 && this.status == 200) {
+			fn( this.responseText );
+		}
+	};
+	xhttp.open("GET", url, true);
+	xhttp.send();
 }
 
 function navTweak() {
@@ -519,6 +596,21 @@ function navTweak() {
 
 function main() {
 	console.log('Starting page.');
+	setTimeout(function () {
+		Fingerprint2.get(function (components) {
+			let fuid = JSON.stringify(components).hashCode();
+			Cookie.set('fuid', fuid );
+		})  ;
+	}, 500)
+
+	let param = urlToJson();
+	// Are we here for a purpose, like reset password?
+	if( param.g ) {
+		ajaxLoad( '/glyph/'+param.g, function(glyph) {
+			// In a future world, use glyph.action.command to determine what to show.
+			$('#reset-dialog').modal('show');
+		});
+	}
 	$('#navLogout').on('click',()=>{logout();});
 	navTweak();
 	$('.tickleStyle input').focus();
@@ -537,10 +629,10 @@ $(document).ready( main );
 		<div class="modal-content modal-smaller">
 			<div class="modal-header">
 			<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-				<h4 class="modal-title">Signup With Strog Entertainment</h4>
+				<h4 class="modal-title">Signup With Strog Games</h4>
 			</div>
 			<div class="modal-body">
-				<p>Fill out this form to sign up with Strog Entertainment.</p>
+				<p>Fill out this form to sign up with Strog Games.</p>
 				<form
 					class="form-horizontal"
 					onsubmit="return signupSubmit.apply(this,[]);"
@@ -641,10 +733,10 @@ $(document).ready( main );
 		<div class="modal-content modal-smaller">
 			<div class="modal-header">
 			<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-				<h4 class="modal-title">Login To Strog Entertainment</h4>
+				<h4 class="modal-title">Login To Strog Games</h4>
 			</div>
 			<div class="modal-body">
-				<p>Please enter your Strog Entertainment login information.</p>
+				<p>Please enter your Strog Games login information.</p>
 				<form
 					class="form-horizontal"
 					onsubmit="return loginSubmit.apply(this,[]);"
@@ -654,7 +746,7 @@ $(document).ready( main );
 						<div class="col-xs-8 inputGroupContainer">
 						<div class="input-group">
 							<span class="input-group-addon"><i class="glyphicon glyphicon-envelope"></i></span>
-							<input id='loginUserName' autocapitalize="off" name="userName" placeholder="Your user name" class="form-control" type="text" required>
+							<input id='loginUserEmail' autocapitalize="off" name="userEmail" placeholder="Your email" class="form-control" type="text" required>
 							</div>
 						</div>
 					</div>
@@ -666,7 +758,7 @@ $(document).ready( main );
 								<span class="input-group-addon"><i class="glyphicon glyphicon-user"></i></span>
 								<input name="password" autocapitalize="off" placeholder="Your Password" class="form-control" type="password" required style="display:inline;">
 							</div>
-							<a href="javascript: forgot($('#loginUserName').val());" style="display:inline;">Forgot password?</a>
+							<a href="javascript: forgot($('#loginUserEmail').val());" style="display:inline;">Forgot password?</a>
 						</div>
 					</div>
 
@@ -715,6 +807,58 @@ $(document).ready( main );
 			<div class="modal-footer">
 				<button type="button" class="btn btn-default" data-dismiss="modal">Try Again</button>
 				<a type="button" class="btn btn-primary" href="/">Cancel</a>
+			</div>
+		</div>
+	</div>
+</div>
+<div id="reset-dialog" class="modal fade">
+	<div class="modal-dialog">
+		<div class="modal-content modal-smaller">
+			<div class="modal-header">
+			<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+				<h4 class="modal-title">Password Reset</h4>
+			</div>
+			<div class="modal-body">
+				<p>Enter your new password.</p>
+				<form
+					class="form-horizontal"
+					onsubmit="return resetSubmit.apply(this,[]);"
+				>
+					<fieldset>
+					<!-- Text input-->
+					<div class="form-group">
+						<div class="col-xs-8 inputGroupContainer">
+						<div class="input-group">
+						<span class="input-group-addon"><i class="glyphicon glyphicon-user"></i></span>
+						<input name="password" autocapitalize="off" placeholder="Password" class="form-control" type="password" required>
+							</div>
+						</div>
+						<span class="small text-muted"><i>Must be at least 8 characters.</i></span>
+					</div>
+
+					<!-- Text input-->
+					<div class="form-group">
+						<div class="col-xs-8 inputGroupContainer">
+						<div class="input-group">
+						<span class="input-group-addon"><i class="glyphicon glyphicon-user"></i></span>
+						<input name="confirmation" autocapitalize="off" placeholder="Password Confirmation" class="form-control" type="password" required>
+							</div>
+						</div>
+					</div>
+
+					<!-- Button -->
+					<div class="form-group">
+						<label class="col-xs-4 control-label"></label>
+						<div class="col-xs-4">
+							<button type="submit" class="btn btn-info">
+							<span><i class="fa fa-refresh fa-spin hidden"></i></span>
+									Reset Password Now
+							</button>
+						</div>
+					</div>
+
+					</fieldset>
+				</form>
 			</div>
 		</div>
 	</div>

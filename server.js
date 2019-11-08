@@ -14,10 +14,12 @@ let Serial        = require('./serial.js');
 let Config        = require('./config.js');
 
 // Plugins
+let Glyph         = require('./glyph.js');
+let Machine       = require('./machine.js');
+let EmailerGmail  = require('./emailerGmail.js');
 let Umbrella      = require('./umbrella.js');
 let Credential    = require('./credential.js');
 let Account       = require('./account.js');
-let Emailer       = require('./emailer.js');
 let Tickle        = require('./tickle.js');
 let Payment       = require('./payment.js');
 let CandyHop      = require('./candyHop.js');
@@ -29,9 +31,10 @@ let Security      = require('./security.js');
 
 let Proxy         = require('http-proxy-middleware');
 
-let plugins = [Umbrella, Credential, Account, Emailer, Tickle, Payment, CandyHop, ReactorRescue, Turmoil, Ops, Site];
+let plugins = [Glyph, Machine, EmailerGmail, Umbrella, Credential, Account, Tickle, Payment, CandyHop, ReactorRescue, Turmoil, Ops, Site];
 
 var Debug = new DebugProxy({
+	glyph: false,
 	comms: false,
 	serial: false,
 	storage: true,
@@ -46,7 +49,7 @@ function serverStart(port,sitePath,localShadowStoneUrl,sessionMaker,storage) {
 	app.accessNoAuthRequired = {};
 	app.accessAdminOnly = {};
 
-	console.log((new Date()).toISOString()+" Serving "+sitePath+" on "+port);
+	console.log("Serving "+sitePath+" on "+port);
 
 	let wsProxyShadowStone = Proxy({
 		target: localShadowStoneUrl
@@ -60,19 +63,40 @@ function serverStart(port,sitePath,localShadowStoneUrl,sessionMaker,storage) {
 
 	app.use( sessionMaker );
 
+	app.use( cookieParser() );
+	app.use( bodyParser.json() );
+	app.use( bodyParser.urlencoded({extended:false}) );
+	app.locals.pretty = true;
+
+	app.use( async function( req, res, next ) {
+		let muid = req.cookies.muid;
+		if( !muid ) {
+			muid = Math.uid();
+			console.log('NEW MACHINE=',muid);
+			let exp = new Date(Date.now() + 2*365*24*60*60*1000);
+			res.cookie( 'muid', muid, { expires: exp } );
+			let machine = new Machine();
+			machine.muid = muid;
+			machine.ip   = Security.remoteAddressToIp(req.connection.remoteAddress);
+			await storage.save(machine);
+		}
+		if( !req.session.muid ) {
+			req.session.muid = muid;
+			Machine.incVisits(muid);
+			console.log('+1 visit by',muid);
+		}
+		return next();
+	});
+
 	app.use( function tellRequest( req, res, next ) {
 		let ignore = { image:1, images:1, sound:1, sounds:1 }
 		let part   = req.url.split('/');
 		let silent = ignore[part[0]] || (part.length>1 && ignore[part[1]]) || (part.length>2 && ignore[part[2]]) || (part.length>3 && ignore[part[3]])
 		if( !silent ) {
-			console.logTraffic(req.method, req.url);
+			console.logTraffic(req.session.muid, req.method, req.url);
 		}
 		next();
 	});
-	app.use( cookieParser() );
-	app.use( bodyParser.json() );
-	app.use( bodyParser.urlencoded({extended:false}) );
-	app.locals.pretty = true;
 
 	app.use( Site.ensureAuthenticated );
 
@@ -82,10 +106,11 @@ function serverStart(port,sitePath,localShadowStoneUrl,sessionMaker,storage) {
 		let accountId = req.cookies.accountId || req.session.accountId;
 		let accountIdBlank = !accountId || accountId=='undefined' || accountId=='null' || accountId=='0';
 
-		if( !accountIdBlank && (!req.session || !req.session.accountId) ) {
+		if( !accountIdBlank && !req.session.accountId ) {
 			// The user is making a claim as to his account, but we haven't
 			// established a session yet for this user...
 			console.log('New Connection: Account', accountId);
+			console.log('req.session=', req.session);
 			let account = await storage.load( 'Account', accountId );
 			if( account ) {
 				Account.loginActivate(req,res,account);
@@ -98,12 +123,25 @@ function serverStart(port,sitePath,localShadowStoneUrl,sessionMaker,storage) {
 		}
 
 		if( accountIdBlank ) {
-			let ip = req.connection.remoteAddress;
-			let ua = req.headers['user-agent'];
-			console.log('Temp Account needed for:', ip, 'User-Agent',ua);
-			let account = await Account.createTemp();
-			storage.save( account );
-			Account.loginActivate(req,res,account);
+			console.assert( req.session.muid );
+			let machine = await storage.load( 'Machine', req.session.muid );
+			console.assert('machine=',machine);
+			if( machine.guestAccountId ) {
+				console.log('Guest Account exists for',machine.muid);
+				let account = await storage.load( 'Account', machine.guestAccountId );
+				console.assert(account);
+				Account.loginActivate(req,res,account);
+			}
+			else {
+				let ip = req.connection.remoteAddress;
+				let ua = req.headers['user-agent'];
+				console.log('Temp Account needed for:', ip, 'User-Agent',ua);
+				let account = await Account.createTemp();
+				await storage.save( account );
+				machine.guestAccountId = account.accountId;
+				await storage.save( machine );
+				Account.loginActivate(req,res,account);
+			}
 		}
 		return next();
 	});
@@ -123,10 +161,11 @@ function serverStart(port,sitePath,localShadowStoneUrl,sessionMaker,storage) {
 	});
 
 	// PLUGIN ONINSTALLROUTES
-	console.log('Installing plugin routes.');
+	console.log('Plugins installing routes.');
 	plugins.forEach( plugin => plugin.onInstallRoutes ? plugin.onInstallRoutes(app) : 0 );
 
 	//app.theServer = http.createServer(app);
+	console.log('Express listening.');
 	app.theServer = app.listen(port);
 	app.theServer.on('upgrade', wsProxyShadowStone.upgrade);
 }
@@ -144,7 +183,7 @@ let serverShutdown = function() {
 }
 
 async function main() {
-	console.log('StrogSvr at ',process.cwd());
+	console.log('Server strogsvr at',process.cwd());
 	let config = new Config('STROG_CONFIG_ID');
 	await config.load( 'config.$1.secret.hjson' );
 
@@ -164,12 +203,20 @@ async function main() {
 		config:  config,
 		storage: storage
 	};
-	console.log('Loading',plugins.length,'plugins.');
-	for( plugin of plugins ) {
+	console.log('Plugins initializing',plugins.length,'plugins.');
+	for( let plugin of plugins ) {
+		if( plugin.id ) {
+			appContext[plugin.id] = plugin;
+		}
 		if( plugin.onInit ) {
 			await plugin.onInit(appContext);
 		}
 	};
+	// Iterate through all the registered serials to convert data from earlier versions to current versions
+	console.log('Storage converting records...');
+	for( let className of storage.classList ) {
+		await storage.convert( className );
+	}
 
 	serverStart( config.port, config.sitePath, config.shadowStoneLocalUrl, sessionMaker, storage );
 }

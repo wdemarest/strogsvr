@@ -7,6 +7,7 @@
 
 	Site.onConfig = function(_context) {
 		config = _context.config;
+		console.assert( config.siteUrl && config.siteUrl.substr(0,4) == 'http' );
 	}
 
 	Site.onInstallRoutes = function(app) {
@@ -24,6 +25,7 @@
 		Object.assign( app.accessNoAuthRequired, {
 			'/nav.css': 1,
 			'/index.html': 1,
+			'/verified.html': 1,
 			'/welcome.html': 1,
 			'/unathorized.html': 1,
 			'/buy.html':1,

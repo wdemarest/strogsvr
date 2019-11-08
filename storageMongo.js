@@ -1,11 +1,27 @@
 (function() {
 
-	let DbMemory = require('./dbMemory.js');
+	const ObjectId = require('mongodb').ObjectID;
+
+	class Converted {};
+
+	let ConvertedReg = ['Converted',{
+		save:     ['itemId','original','revised'],
+		make:     (data) => new Converted(),
+		table:    'Converted',
+		idField:  'itemId',
+		version:  1
+	}];
+
 
 	class StorageMongo {
 		constructor(serial) {
 			this.db = null;
 			this.serial = serial;
+			this.serial.register( ...ConvertedReg );
+
+		}
+		get classList() {
+			return Object.keys(this.serial.meta);
 		}
 		filter(key,value) {
 			let n = {};
@@ -21,7 +37,7 @@
 			console.assert(mongoPwd);
 			console.assert(dbName);
 			return new Promise( (resolve,reject) => {
-				console.log('Connecting user',mongoUser,'to',mongoUrl);
+				console.log('Storage connecting user',mongoUser,'to',mongoUrl);
 				let MongoClient = require('mongodb').MongoClient
 				let parts = mongoUrl.split('://');
 				let url = parts[0]+'://'+mongoUser+':'+mongoPwd+'@'+parts[1];
@@ -49,6 +65,14 @@
 			let meta = this.serial.getMeta(className);
 			console.assert(meta.table);
 			this.db.collection(meta.table).deleteMany({});
+		}
+		async removeWhere(className,query) {
+			if( !this.db ) return;
+			console.logStorage('storage delete',className,query);
+			let meta = this.serial.getMeta(className);
+			console.assert(meta.table);
+			let result = await this.db.collection(meta.table).deleteMany(query);
+			return result;
 		}
 		remove(obj) {
 			if( !this.db ) return obj;
@@ -91,7 +115,7 @@
 							recordHash[data[idField]] = record;
 						}
 					});
-					console.logStorage('Loaded',Object.keys(recordHash).length,'of',list.length,className,'with '+discards+' discards.');
+					console.logStorage(className,'loaded',Object.keys(recordHash).length,'of',list.length,'with '+discards+' discards.');
 					return resolve( recordHash );
 				});
 			});
@@ -127,14 +151,28 @@
 				console.log('Converting', className );
 				for( let raw of rawHash ) {
 					// WARNING: This is WAY slow, to do each one-by-one. Should do it as a batch...
-					let didOne = await meta.convert( raw._version, meta.version, raw );
-					count += didOne ? 1 : 0;
+					let originalId = raw._id;
+					let original   = Object.assign( {}, raw );
+					let revised = await meta.convert( raw );
+					if( revised ) {
+						let converted = new Converted();
+						converted.itemId    = Math.uid()+'-'+original._id;
+						converted.original  = Object.assign({},original);
+						converted.revised   = Object.assign({},revised);
+						delete converted.original._id;
+						delete converted.revised._id;
+						//console.log('Saving converted ', converted );
+						await this.save( converted );
+						await this.save( revised );
+
+						++count;
+					}
 				}
 				console.log('Converted', count, className );
 			}
 			return count;
 		}
-		save(obj) {
+		async save(obj) {
 			if( !this.db ) return obj;
 			let meta = this.serial.deduceMeta(obj);
 			if( !meta ) {
@@ -151,35 +189,40 @@
 			console.assert(obj[idField]);
 			let data = this.serial.distill(obj,['save']);
 			console.assert(data[idField]);
-			console.logStorage('save',meta.className,data[idField],'to',table);
-			this.db.collection(table).updateOne(
-				this.filter(idField,data[idField]), { $set: data }, { upsert: true }
-			);
+			//console.logStorage(data);
+			if( data._id ) {
+				console.logStorage('save',meta.className,'_id=',data._id,'idField=',data[idField],'to',table);
+				await this.db.collection(table).updateOne(
+					{ _id: ObjectId(data._id) }, { $set: data }, { upsert: true }
+				);
+			}
+			else {
+				console.logStorage('save',meta.className,data[idField],'to',table);
+				await this.db.collection(table).updateOne(
+					this.filter(idField,data[idField]), { $set: data }, { upsert: true }
+				);
+			}
 			return obj;
 		}
-/*
-		save(obj) {
-			if( !this.db ) return obj;
-			let meta = this.serial.deduceMeta(obj);
-			let table = meta.table;
-			console.assert(table);
-			console.assert(meta.save);
-			let idField = meta.idField;
-			console.assert(obj[idField]);
-			let dataRaw = this.serial.distill(obj,['save']);
-			let _id = dataRaw[idField];
-			let data = dataRaw;
-			console.assert( !data._id );
-			//let data = Object.assign( {}, dataRaw, {_id:obj[idField]} );
+		async inc(className,id,fieldToInc,amount=1) {
+			let meta = this.serial.getMeta(className);
+			console.assert(meta, 'Failed to deduce meta for '+className);
+			console.assert(meta.table);
+			console.assert(meta.idField);
+			console.assert(Number.isInteger(amount));
 
-			console.logStorage('save',meta.className,_id,'to',table);
-			this.db.collection(table).updateOne(
-				{ _id: _id }, { $set: data }, { upsert: true }
+			let result = await this.db.collection(meta.table).findOneAndUpdate(
+				{ [meta.idField]: id },
+				{ '$inc': { [fieldToInc]: amount } },
+				{
+					upsert: true,
+					returnOriginal: false	// WARNING: this is documented in mongodb 3.2.0 as returnNewDocument: true, but that isn't how this driver works
+				}
 			);
-			return obj;
+			//let record = this.serial.inject(null,result);
+			//console.log('inc result =',result);
+			return result;
 		}
-*/
-
 	}
 
 	module.exports = StorageMongo;

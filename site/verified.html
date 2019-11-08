@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>
+	function urlToJson() {
+		let regex = /[?&]([^=#]+)=([^&#]*)/g;
+		let url = window.location.href;
+		let params = {};
+		let match;
+		while(match = regex.exec(url)) {
+			params[match[1]] = match[2];
+		}
+		return params;
+	}
+
+	function ajaxLoad(url,fn) {
+		var xhttp = new XMLHttpRequest();
+		xhttp.onreadystatechange = function() {
+			if (this.readyState == 4 && this.status == 200) {
+				fn( this.responseText );
+			}
+		};
+		xhttp.open("GET", url, true);
+		xhttp.send();
+	}
+
+	function getResult() {
+		let param = urlToJson();
+		ajaxLoad( '/glyph/'+param.g, (glyph)=> {
+			document.getElementById('result').innerHTML = glyph.result.message;
+		});
+	}
+
+	getResult();
+</script>
+</head>
+<body>
+	<h1>Email verified</h1>
+	<p>Thanks for verifying your email address.</p>
+	<p id='result'></p>
+	<button onclick="location.href='http://strog.com';">Continue to strog.com</button>
+</body>
+</html>

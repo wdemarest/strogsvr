@@ -1,8 +1,5 @@
 (function() {
 
-	let Credential = require('./credential.js');
-	let Emailer    = require('./emailer.js');
-
 	let config;
 	let storage;
 

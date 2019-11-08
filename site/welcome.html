@@ -159,7 +159,7 @@ function forgot(userName) {
 		contentType:"application/json; charset=utf-8",
 		data: JSON.stringify({userName:userName}),
 		success: function(result) {
-			if( result.status == 'success' ) {
+			if( result.result == 'success' ) {
 				alert( "We just sent an email with your login information. It might take a while to arrive, and don't forget to check your spam folder!");
 			}
 			else {

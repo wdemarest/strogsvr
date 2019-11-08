@@ -16,7 +16,7 @@
 
 	Emailer.send = function(to,subject,body,callback) {
 		if( !config.mandrillApiKey ) {
-			callback({ status: 'success', error: 'pretend email sent' });
+			callback({ result: 'success', error: 'pretend email sent' });
 			return;
 		}
 		let mandrillSend = require('mandrill-send')(config.mandrillApiKey);
@@ -29,13 +29,13 @@
 			},
 			function(err) {
 				let result = {
-					status: "success",
+					result: "success",
 					when: (new Date()).toISOString()
 				};
 				if( err ) {
 					let msg = (err.data ? (err.data.message || err.data) : err);
 					result = {
-						status: 'failure', error: JSON.stringify(msg)
+						result: 'failure', error: JSON.stringify(msg)
 					};
 				}
 				console.log(result);

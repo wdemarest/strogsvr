@@ -4,70 +4,91 @@
 	let storage = null;
 
 	let CredentialReg = ['Credential',{
-		save:    ['userName','password','salt','saltedPassword','accountId'],
-		make:    (data) => new Credential(data.userName,data.salt,data.saltedPassword,data.accountId),
+		save:    ['userEmail','userName','password','salt','saltedPassword','accountId'],
+		make:    (data) => new Credential(),
 		table:   'Credential',
-		idField: 'userName',
-		version: 2,
-		convert: (from,to,record) => { return Credential.convert(from,to,record); }
+		idField: 'userEmail',
+		version: 3,
+		convert: (record) => { return Credential.convert(record); }
 	}];
 
 	class Credential {
-		constructor( userName, salt, saltedPassword, accountId ) {
-			console.assert(userName);
-			console.assert(salt);
-			console.assert(saltedPassword);
-			console.assert(accountId);
+		constructor() {
+			this.userEmail       = null;
+			this.salt            = null;
+			this.saltedPassword  = null;
+			this.accountId       = null;
+			this.password        = null;
+		}
+		set( userEmail, salt, saltedPassword, accountId ) {
+			console.assert(userEmail, 'set userEmail');
+			console.assert(salt, 'set salt');
+			console.assert(saltedPassword, 'set saltedPassword');
+			console.assert(accountId, 'set accountId');
 
-			this.userName        = userName;
+			this.userEmail       = userEmail;
 			this.salt            = salt;
 			this.saltedPassword  = saltedPassword;
 			this.accountId       = accountId;
 			this.password        = null;
+			return this;
 		}
 	}
 
 	Credential.admin = {
 		accountId: 'admin',
-		userName:  'admin'
+		userEmail: 'admin',
+		userName:  'admin',
 	};
+
+	Credential.id = 'Credential';
 
 	Credential.onInit = async function(_context) {
 		storage = _context.storage;
 		storage.serial.register( ...CredentialReg );
-		await storage.convert( CredentialReg[1].table );
 
 		let adminPassword = _context.config.adminPassword;
 		if( !adminPassword || (adminPassword in ['password','admin']) ) {
 			throw "Illegal admin credentials. Please check config.*.secret.hjson";
 		}
 
-		let adminCredential = await storage.load( 'Credential', Credential.admin.userName );
+		let adminCredential = await storage.load( 'Credential', Credential.admin.userEmail );
 		if( !adminCredential || !Credential.match(adminCredential,adminPassword) ) {
 			console.log( "Admin credentials are new or have changed. Writing to db." );
 			Credential.create(
-				Credential.admin.userName,
+				Credential.admin.userEmail,
 				adminPassword,
 				Credential.admin.accountId
 			);
 		}
 	}
 
-// next step in password recovery is to make it so that there are a bunch of uids, with
-// expiration dates, and a command of "what to do". When a user clicks a link like
-// http://strog.com?action=chf4Rh2Sw it will take action like "allow password reset"
-// { action: 'chf4Rh2Sw', expires: '2019-11-01 14:15', action: 'passwordReset', account: 'whatever' }
+	Credential.convert = async function(raw) {
+		let credential = Object.assign( new Credential(), raw );
+		let fromVersion = credential._version;
 
-
-	Credential.convert = async function(from,to,raw) {
-		if( from == 1 && to == 2 ) {
-			Credential.overwrite( raw.userName, raw.password, raw.accountId );
-			return true;	// so convert counting works right.
+		if( credential._version == 1 ) {
+			let s = saltGet( credential.password );
+			console.assert( s.salt );
+			console.assert( s.saltedPassword );
+			credential.salt           = s.salt;
+			credential.saltedPassword = s.saltedPassword;
+			credential.password       = null;
+			credential._version = 2;
 		}
+		if( credential._version == 2 ) {
+			console.assert(credential.accountId);
+			credential.userEmail = credential.accountId=='admin' ? 'admin' : await Credential.getEmailFromAccountId( credential.accountId );
+			console.assert(credential.userEmail);
+			delete credential.userName;
+			credential._version = 3;
+		}
+
+		return fromVersion < credential._version ? credential : null;
 	}
 
 	function generateSaltedPassword(password, salt){
-		console.assert( password );
+		console.assert( password, 'generateSaltedPassword - password' );
 
 		let hash = crypto.createHmac('sha512', salt); /** Hashing algorithm sha512 */
 		hash.update(password);
@@ -76,8 +97,8 @@
 	}
 
 	Credential.match = function(credential,password) {
-		console.assert( credential.salt);
-		console.assert( password );
+		if( !credential.salt ) return false;
+		console.assert( password, 'Credential.match - password' );
 		//console.log( 'match', credential );
 		//console.log( password );
 		//console.log( password );
@@ -88,11 +109,7 @@
 		return isMatch;
 	}
 
-	async function accountWrite(userName,password,accountId) {
-
-		console.assert( userName );
-		console.assert( password );
-		console.assert( accountId );
+	function saltGet(password) {
 
 		function generateSalt(length) {
 			return crypto.randomBytes(Math.ceil(length/2))
@@ -100,21 +117,33 @@
 				.slice(0,length);	/** return required number of characters */
 		}
 
+		console.assert( password, 'saltGet - password' );
 		let salt           = generateSalt(16);
 		let saltedPassword = generateSaltedPassword( password, salt );
+		return { salt: salt, saltedPassword: saltedPassword };
+	}
 
-		let credential = new Credential(userName,salt,saltedPassword,accountId);
-		storage.save( credential );
+	Credential.create = async function(userEmail,password,accountId) {
+		console.assert( userEmail, 'Credential.create - userEmail');
+		console.assert( password, 'Credential.create - password' );
+		console.assert( accountId, 'Credential.create - accountId' );
 
+		let s = saltGet( password );
+		let credential = new Credential().set(userEmail,s.salt,s.saltedPassword,accountId);
+		await storage.save( credential );
 		return credential;
 	}
 
-	Credential.create = async function(userName,password,accountId) {
-		return await accountWrite( userName, password, accountId || Math.uid() );
-	}
+	Credential.reset = async function(credential,password) {
+		console.assert( credential, 'Credential.reset - credential');
+		console.assert( password, 'Credential.reset - password' );
 
-	Credential.overwrite = async function(userName,password,accountId) {
-		return await accountWrite( userName, password, accountId );
+		let s = saltGet( password );
+		credential.salt = s.salt;
+		credential.saltedPassword = s.saltedPassword;
+		delete credential.password;
+		await storage.save( credential );
+		return credential;
 	}
 
 	module.exports = Credential;

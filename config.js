@@ -19,7 +19,7 @@
 				let configId = process.env[this._envConfigId] || 'dev';
 				console.log('Environment variable '+this._envConfigId+' set to '+configId );
 				let configFileName = pattern.replace( '$1', configId );
-				console.log('Loading config',configFileName);
+				console.log('Config loading',configFileName);
 				Fs.readFile( configFileName, 'utf8', (err, contents) => {
 					if( err ) {
 						return reject(err);
