@@ -34,41 +34,11 @@
 			return this.expires < new Date().toISOString();
 		}
 
-		url() {
-			return config.siteUrl+'/g/'+this.uid;
-		}
-
 //we have to make it that glyph actions that complete are just kept around and don't expire.
 //also, there should be friendly messages shown on the web pages when the first few tests in act() are met
 
 //Also, make sure we have machine IDs for every visitor! so we know how many uniques, and can count visits.
 
-
-		async act() {
-			if( this.result ) {
-				return { result: 'failure', hasFired: 1, message: 'action '+this.uid+' already taken.', details:this.result };
-			}
-			if( this.isExpired() ) {
-				await Glyph.remove(this);
-				return { result: 'failure', message: 'action '+this.uid+' expired.' };
-			}
-			if( !Glyph.actionList[this.action.command] ) {
-				await Glyph.remove(this);
-				return { result: 'failure', message: 'unknown action '+this.uid+'.' };
-			}
-
-			// Technically, to be completely safe, we should remove the glyph first AND make sure we
-			// were the process to actually remove it. If we were, then it can act as a lock stating
-			// that we are the authorized process that can act on the glyph.			
-			let result = await Glyph.actionList[this.action.command](this);
-			this.result = result;
-			if( result.result ) {
-				// We don't save it if all that is returned is a redirect URL, because that means the
-				// glyph isn't actually resolved yet. The web page at the URL will do it.
-				await storage.save(this);
-			}
-			return result;
-		}
 	}
 
 	Glyph.id = 'Glyph';
@@ -79,7 +49,6 @@
 		console.assert( !Glyph.actionList[command] );
 		Glyph.actionList[command] = actionFn;
 	}
-
 
 	Glyph.onInit = async function(_context) {
 		config  = _context.config;
@@ -99,11 +68,9 @@
 
 	Glyph.onInstallRoutes = function(app) {
 		Object.assign( app.accessNoAuthRequired, {
-			'/g': 1,
 			'/glyph': 1,
 		});
 
-		app.get('/g/:id',Glyph.onUserVisit);
 		app.get('/glyph/:id',Glyph.get);
 	}
 
@@ -115,23 +82,39 @@
 		}
 	}
 
-	Glyph.onUserVisit = async function(req,res) {
-		let uid = req.params.id;
-		let actOnGlyph = async () => {
-			if( !uid ) {
-				return { result: 'failure', message: 'Missing glyph uid.' };
-			}
-			let glyph = await storage.load('Glyph',uid);
-			if( !glyph ) {
-				return { result: 'failure', message: 'No such glyph.' };
-			}
-			return await glyph.act();
-		};
-		let result = await actOnGlyph();
-		if( result.url ) {
-			return res.redirect( result.url );
+
+	Glyph.onGlyph = async function(req,res) {
+		let uid = req.body.uid;
+		if( !uid ) {
+			return res.send( { result: 'failure', message: 'Missing glyph uid.' } );
 		}
-		return res.send( result );
+		let glyph = await storage.load('Glyph',uid);
+		if( !glyph ) {
+			return res.send( { result: 'failure', message: 'No such glyph.' } );
+		}
+		if( !glyph.action || !Glyph.actionList[glyph.action.command] ) {
+			await Glyph.remove(glyph);
+			return res.send( { result: 'failure', message: 'Unknown action '+uid+'.' } );
+		}
+
+		let result = null;
+		if( glyph.result ) {
+			result = { result: 'failure', fired: 1, message: 'Action '+uid+' already taken.', details:glyph.result };
+			glyph.doNotSave = true;
+		}
+		else
+		if( glyph.isExpired() ) {
+			result = { result: 'failure', expired: 1, message: 'Action '+glyph.action.command+' has expired.' };
+			glyph.doNotSave = true;
+		}
+
+		result = await Glyph.actionList[glyph.action.command](glyph,result,req,res);
+		if( !result.doNotSave ) {
+			glyph.result = result;
+			await storage.save(glyph);
+		}
+		return res.send(result);
+
 	}
 
 	Glyph.get = async function(req,res) {

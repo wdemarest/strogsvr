@@ -58,16 +58,8 @@
 		console.assert( config.emailVerifyHours );
 		console.assert( config.passwordResetHours );
 
-		Glyph.register( Account.VERIFY_EMAIL, async function(glyph) {
-			let result = Account.markVerified(glyph.action.accountId,glyph.action.userEmail);
-			result.url = result.url || '/verified.html?g='+glyph.uid;
-			return result;
-		});
-
-		Glyph.register( Account.RESET_PASSWORD, function(glyph) {
-			// Don't return a result success, because it is up to the web page to actually do the reset.
-			return { url: '/index.html?g='+glyph.uid };
-		});
+		Glyph.register( Account.VERIFY_EMAIL,   Account.verify );
+		Glyph.register( Account.RESET_PASSWORD, Account.reset );
 
 		let adminAccount = await storage.load( 'Account', Credential.admin.accountId );
 		if( !adminAccount ) {
@@ -89,6 +81,7 @@
 			'/logout': 1,
 			'/forgot': 1,
 			'/reset':  1,
+			'/verify':  1,
 			'/emailTest': 1,
 		});
 
@@ -96,9 +89,18 @@
 		app.post( "/login",  Account.login );
 		app.post( "/logout", Account.logout );
 		app.post( "/forgot", Account.forgot );
-		app.post( "/reset",  Account.reset );
-		app.get( "/emailTest", Account.emailTest );
+		app.get(  "/reset/:id", Account.glyphRedirect);
+		app.get(  "/verify/:id", Account.glyphRedirect);
+		app.post( "/reset",  Glyph.onGlyph );
+		app.post( "/verify", Glyph.onGlyph );
+		app.get(  "/emailTest", Account.emailTest );
 	}
+
+	Account.glyphRedirect = function(req,res) {
+		res.cookie( 'glyphId', req.params.id );
+		return res.redirect("/index.html");
+	}
+
 
 	Account.loginActivate = function(req,res,account) {
 		console.log( 'loginActivate',account);
@@ -174,10 +176,11 @@
 	}
 
 	Account.generateAndSendEmailVerificationInvitation = async function(userEmail,accountId) {
-		let glyph = await Glyph.create(
-			config.emailVerifyHours,
-			{ command: Account.VERIFY_EMAIL, userEmail: userEmail, accountId: accountId }
-		);
+		let glyph = await Glyph.create( config.emailVerifyHours, {
+			command: Account.VERIFY_EMAIL,
+			userEmail: userEmail,
+			accountId: accountId
+		});
 
 		return await Emailer.send(
 			userEmail,
@@ -185,7 +188,7 @@
 			"At Strog Games your security is important to us. Please take a moment to\n"+
 			"click below to verify your email address.\n"+
 			"\n"+
-			glyph.url()+"\n"+
+			config.siteUrl+'/verify/'+glyph.uid+"\n"+
 			"\n"+
 			"If you ever have any questions or issues, please don't hesitate to email us at "+config.contactEmail+"\n"+
 			"\n"+
@@ -294,48 +297,39 @@
 		res.send( { result: 'success' } );
 	}
 
-	Account.reset = async function(req,res) {
-		let uid          = req.body.uid;
+	Account.reset = async function(glyph,result,req,res) {
+		if( result ) {
+			if( result.fired ) {
+				result.message = "Your password was already reset.";
+			}
+			return result;
+		}
 		let password     = req.body.password;
 		let confirmation = req.body.confirmation;
 
-		if( !uid ) {
-			return res.send( { result: 'failure', message: 'No uid specified.' } );
-		}
-		let glyph = await storage.load( 'Glyph', uid );
-		if( !glyph ) {
-			return res.send( { result: 'failure', message: 'No such glyph '+uid } );
-		}
-		if( glyph.action.command != Account.RESET_PASSWORD ) {
-			return res.send( { result: 'failure', message: 'Wrong glyph command.' } );
-		}
 		if( !glyph.action.userEmail ) {
-			return res.send( { result: 'failure', message: 'No userEmail in glyph.' } );
-		}
-		if( glyph.action.result ) {
-			return res.send( { result: 'failure', message: 'Password reset was already completed.' } );
+			return { result: 'failure', message: 'No userEmail in glyph.' };
 		}
 
 		if( password != confirmation ) {
-			return res.send( { result: 'failure', message: 'The password does not match the confirmation.' } );
+			return { result: 'failure', doNotSave: true, message: 'The password does not match the confirmation.' };
 		}
 
 		if( password.length < 8 ) {
-			return res.send( { result: 'failure', message: 'Password must be at least 8 characters.' } );
+			return { result: 'failure', doNotSave: true, message: 'Password must be at least 8 characters.' };
 		}
 
 		if( password.length > 32 ) {
-			return res.send( { result: 'failure', message: 'That password is too long. 32 characters or less please.' } );
+			return { result: 'failure', doNotSave: true, message: 'That password is too long. 32 characters or less please.' };
 		}
 
 		let credential = await storage.load( 'Credential', glyph.action.userEmail );
 		if( !credential ) {
-			return res.send( { result: 'failure', message: 'Email matches no credential.' } );
+			return { result: 'failure', message: 'Email matches no credential.' };
 		}
 
 		await Credential.reset( credential, password );
-		glyph.result = { result: 'success', message: 'Password changed successfully.' };
-		await storage.save( glyph );
+		result = { result: 'success', message: 'Password changed successfully.' };
 
 		await Emailer.send(
 			credential.userEmail,
@@ -348,7 +342,7 @@
 			"\n"
 		);
 
-		return res.send( { result: 'success', message: 'Password changed.' } );
+		return result;
 	}
 
 
@@ -376,7 +370,10 @@
 			return res.send( { result: 'failure', message: 'No such account.' } );
 		}
 
-		let glyph = await Glyph.create( config.passwordResetHours, {command: Account.RESET_PASSWORD, userEmail: credential.userEmail} ); 
+		let glyph = await Glyph.create( config.passwordResetHours, {
+			command: Account.RESET_PASSWORD,
+			userEmail: credential.userEmail
+		}); 
 
 		let result = await Emailer.send(
 			credential.userEmail,
@@ -386,7 +383,7 @@ Hi ${account.userName},
 
 Sorry to hear you forgot your password. You can reset your password by clicking the link below.
 
-${glyph.url()}
+${config.siteUrl}/reset/${glyph.uid}
 
 If you did not ask for your password to be reset, please email us ASAP at ${config.contactEmail}!
 
@@ -397,21 +394,33 @@ Thank you for being part of the Strog family!
 		return res.send( result );
 	}
 
-	Account.markVerified = async function(accountId,userEmail) {
+	Account.verify = async function(glyph,result,req,res) {
+		if( result ) {
+			if( result.fired && glyph.result.result=='success') {
+				result.message = "Your email has already been verified.";
+			}
+			return result;
+		}
+		let accountId = glyph.action.accountId;
+		let userEmail = glyph.action.userEmail;
 		let account = await storage.load('Account',accountId);
 		if( !account ) {
-			return { result: 'failure', message: 'no such account' };
+			return { result: 'failure', message: 'No such account' };
 		}
 		if( account.userEmail != userEmail ) {
-			return { result: 'failure', message: 'mismatched email' };
+			return { result: 'failure', message: 'Mismatched email' };
 		}
 		account.isVerified = true;
 		await storage.save( account );
-		return { result: 'success', message: 'email verified' };
+		return { result: 'success', message: 'Your email was successfully verified.' };
 	}
 
 	Account.emailTest = async function(req,res) {
-		let glyph = await Glyph.create( config.emailVerifyHours, {command: Account.VERIFY_EMAIL, userEmail: 'ken.demarest@gmail.com', accountId: 'none'} );
+		let glyph = await Glyph.create( config.emailVerifyHours, {
+			command: Account.VERIFY_EMAIL,
+			userEmail: 'ken.demarest@gmail.com',
+			accountId: 'none'
+		});
 		let result = await Emailer.send(
 			'ken.demarest@gmail.com',
 			'some subject',

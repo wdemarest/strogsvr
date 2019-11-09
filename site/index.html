@@ -367,9 +367,9 @@ function logout() {
 		contentType:"application/json; charset=utf-8",
 		data: {},
 		success: function() {
-			window.location = 'index.html';
-			location.reload();
-			navTweak();
+			window.location = 'index.html?logout';
+//			location.reload();
+//			navTweak();
 		},
 		error: function(jqXHR, textStatus) {
 			alert(textStatus);
@@ -508,24 +508,24 @@ function forgot(userEmail) {
 	return false;
 }
 
+let resetGlyphId = null;
 function resetSubmit() {
-	let self = this;
-
-	let data = {}
-	let form = $(self).find('.form-control');
-	$.each(form,function(index,value) {
-		data[value.name] = $(value).val();
-	});
-
-	let uid = urlToJson().g;
-	
 	try {
+
+		let self = this;
+
+		let data = {}
+		let form = $(self).find('.form-control');
+		$.each(form,function(index,value) {
+			data[value.name] = $(value).val();
+		});
+
 		$.ajax({
 			url: '/reset',
 			method: 'POST',
 			contentType:"application/json; charset=utf-8",
 			data: JSON.stringify({
-				uid: uid,
+				uid: resetGlyphId,
 				password: data.password,
 				confirmation: data.confirmation
 			}),
@@ -535,7 +535,7 @@ function resetSubmit() {
 					$('#reset-dialog').modal('hide');
 				}
 				else {
-					alert( "Error: The Strog Games server said '"+JSON.stringify(result) );
+					alert( "Error: The Strog Games server said '"+result.message );
 				}
 			},
 			error: function(jqXHR, textStatus) {
@@ -549,17 +549,29 @@ function resetSubmit() {
 	return false;
 }
 
-
-function urlToJson() {
-	let regex = /[?&]([^=#]+)=([^&#]*)/g;
-	let url = window.location.href;
-	let params = {};
-	let match;
-	while(match = regex.exec(url)) {
-		params[match[1]] = match[2];
+function verifyEmail(glyph) {
+	try {
+		$.ajax({
+			url: '/verify',
+			method: 'POST',
+			contentType:"application/json; charset=utf-8",
+			data: JSON.stringify({
+				uid: glyph.uid
+			}),
+			success: function(result) {
+				$('#verifyMessage').html( result.message );
+			},
+			error: function(jqXHR, textStatus) {
+				$('#verifyMessage').html( "Unable to complete operation." );
+			}
+		});
 	}
-	return params;
+	catch(e) {
+		debugger;
+	}
+	return false;	
 }
+
 
 String.prototype.hashCode = function() {
   var hash = 0, i, chr;
@@ -576,7 +588,7 @@ function ajaxLoad(url,fn) {
 	var xhttp = new XMLHttpRequest();
 	xhttp.onreadystatechange = function() {
 		if (this.readyState == 4 && this.status == 200) {
-			fn( this.responseText );
+			fn( JSON.parse(this.responseText) );
 		}
 	};
 	xhttp.open("GET", url, true);
@@ -603,12 +615,24 @@ function main() {
 		})  ;
 	}, 500)
 
-	let param = urlToJson();
-	// Are we here for a purpose, like reset password?
-	if( param.g ) {
-		ajaxLoad( '/glyph/'+param.g, function(glyph) {
-			// In a future world, use glyph.action.command to determine what to show.
-			$('#reset-dialog').modal('show');
+	let glyphId = Cookie.get( 'glyphId' );
+	if( glyphId ) {
+		Cookie.erase('glyphId');
+		let actionFn = {
+			verifyEmail: async function(glyph) {
+				$('#verify-dialog').modal('show');
+				verifyEmail(glyph);
+			},
+			resetPassword: async function(glyph) {
+				resetGlyphId = glyph.uid;
+				$('#reset-dialog').modal('show');
+			}
+		};
+
+		ajaxLoad( '/glyph/'+glyphId, function(glyph) {
+			if( glyph && glyph.action && glyph.action.command && actionFn[glyph.action.command] ) {
+				actionFn[glyph.action.command](glyph);
+			}
 		});
 	}
 	$('#navLogout').on('click',()=>{logout();});
@@ -859,6 +883,19 @@ $(document).ready( main );
 
 					</fieldset>
 				</form>
+			</div>
+		</div>
+	</div>
+</div>
+<div id="verify-dialog" class="modal fade">
+	<div class="modal-dialog">
+		<div class="modal-content modal-smaller">
+			<div class="modal-header">
+			<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+				<h4 class="modal-title">Verify Email</h4>
+			</div>
+			<div class="modal-body">
+				<p id="verifyMessage">Working...</p>
 			</div>
 		</div>
 	</div>
