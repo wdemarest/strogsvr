@@ -85,6 +85,11 @@ function serverStart(port,sitePath,localShadowStoneUrl,sessionMaker,storage) {
 			Machine.incVisits(muid);
 			console.log('+1 visit by',muid);
 		}
+		if( req.visitorInfo ) {
+			console.log('updating',muid,'with',req.visitorInfo);
+			storage.update('Machine',muid,'info',req.visitorInfo);
+			delete req.visitorInfo;
+		}
 		return next();
 	});
 

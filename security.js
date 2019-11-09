@@ -58,6 +58,9 @@
 					this.knownBadIp[ip] = 1;
 					return this.fail( res, 'invalid country code ['+info.countryCode+'] for '+ip );
 				}
+				console.log('visitor info',info);
+				info.ip = ip;
+				req.visitorInfo = info;
 				this.knownGoodIp[ip] = 1;
 				return next();
 			});

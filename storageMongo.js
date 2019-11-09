@@ -223,6 +223,23 @@
 			//console.log('inc result =',result);
 			return result;
 		}
+		async update(className,id,fieldId,value) {
+			let meta = this.serial.getMeta(className);
+			console.assert(meta, 'Failed to deduce meta for '+className);
+			console.assert(meta.table);
+			console.assert(meta.idField);
+			console.assert(fieldId);
+			console.assert(value!==undefined);
+
+			let result = await this.db.collection(meta.table).update(
+				{ [meta.idField]: id },
+				{ '$set': { [fieldId]: value } },
+				{
+					returnOriginal: false	// WARNING: this is documented in mongodb 3.2.0 as returnNewDocument: true, but that isn't how this driver works
+				}
+			);
+			return result;
+		}
 	}
 
 	module.exports = StorageMongo;
