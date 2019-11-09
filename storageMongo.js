@@ -231,7 +231,7 @@
 			console.assert(fieldId);
 			console.assert(value!==undefined);
 
-			let result = await this.db.collection(meta.table).update(
+			let result = await this.db.collection(meta.table).updateOne(
 				{ [meta.idField]: id },
 				{ '$set': { [fieldId]: value } },
 				{

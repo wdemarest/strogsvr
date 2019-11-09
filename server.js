@@ -88,7 +88,6 @@ function serverStart(port,sitePath,localShadowStoneUrl,sessionMaker,storage) {
 		if( req.visitorInfo ) {
 			console.log('updating',muid,'with',req.visitorInfo);
 			storage.update('Machine',muid,'info',req.visitorInfo);
-			delete req.visitorInfo;
 		}
 		return next();
 	});
