@@ -53,6 +53,12 @@
 			}
 
 			iplocation( ip, [], (error, info) => {
+				// Because multiple requests can start before we resolve the validity of their IP,
+				// we want to check it AGAIN here. This becomes most noticeable when req.visitorInfo
+				// cascades into four or more calls during a brand new visitor.
+				if( this.knownGoodIp[ip] ) {
+					return next();
+				}
 				if( error ) throw error;
 				if( !this.validCountryCode[info.countryCode] ) {
 					this.knownBadIp[ip] = 1;
