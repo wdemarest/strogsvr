@@ -87,6 +87,7 @@ function serverStart(port,sitePath,localShadowStoneUrl,sessionMaker,storage) {
 		}
 		if( req.visitorInfo ) {
 			console.log('updating',muid,'with',req.visitorInfo);
+			req.visitorInfo.userAgent = req.headers['user-agent'];
 			storage.update('Machine',muid,'info',req.visitorInfo);
 		}
 		return next();
