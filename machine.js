@@ -4,7 +4,8 @@
 	let storage = null;
 
 	let MachineReg = ['Machine',{
-		save:    ['muid','ip','visits','guestAccountId','info'],
+		save:    ['muid','ip','visits','guestAccountId','fuid','info'],
+		_created: true,
 		make:    (data) => new Machine(),
 		table:   'Machine',
 		idField: 'muid',
@@ -14,7 +15,7 @@
 
 	class Machine {
 		constructor() {
-			Object.assign(this,{muid:null,ip:'',visits:0,guestAccountId:null,info:null});
+			Object.assign(this,{muid:null,ip:'',visits:0,guestAccountId:null,fuid:null,info:null});
 		}
 	}
 
@@ -22,6 +23,34 @@
 		config     = _context.config;
 		storage    = _context.storage;
 		storage.serial.register( ...MachineReg );
+	}
+
+	Machine.onInstallRoutes = function(app) {
+		Object.assign( app.accessNoAuthRequired, {
+			'/fuid': 1,
+		});
+		app.post( "/fuid", Machine.fuid );
+	}
+
+	Machine.fuid = async function(req,res) {
+		// The client tries to make sure this only gets calls when the fuid cookie is different from
+		// the actual (possibly hanging) fuid value. But double-check that here, and make this the authority
+
+		let muid = req.body.muid;
+		let fuid = req.body.fuid;
+		if( !muid || !fuid ) {
+			return res.send({result:'failure',message:'empty muid or fuid'});
+		}
+		if( req.cookies.fuid == fuid ) {
+			return res.send({result:'success',message:'fuid already identical'});
+		}
+
+		let exp = new Date(Date.now() + 2*365*24*60*60*1000);
+		console.log('Machine:',muid,'fuid=',fuid);
+		res.cookie( 'fuid', fuid, { expires: exp } );
+		req.session.fuid = fuid;
+		storage.update('Machine',muid,'fuid',fuid);
+		return res.send({result:'success',message:'fuid set'});
 	}
 
 	Machine.incVisits = async function(muid) {

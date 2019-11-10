@@ -14,6 +14,14 @@
 <title>Strog Games</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-151932736-1"></script>
+<script>
+	window.dataLayer = window.dataLayer || [];
+	function gtag(){dataLayer.push(arguments);}
+	gtag('js', new Date());
+	gtag('config', 'UA-151932736-1');
+</script>
+
 <link href="https://fonts.googleapis.com/css?family=Comfortaa" rel="stylesheet">
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap-theme.min.css">
@@ -360,12 +368,20 @@ let Cookie = {
 	}
 }
 
+function assignGtagUserId() {
+	let gtagUserId = Cookie.get('userEmail') || Cookie.get('muid');
+	if( gtagUserId ) {
+		gtag('set', {'user_id': gtagUserId}); // Set the user ID using signed-in user_id.
+	}
+}
+assignGtagUserId();
+
 function logout() {
 	$.ajax({
 		url: '/logout',
 		method: 'POST',
 		contentType:"application/json; charset=utf-8",
-		data: {},
+		data:JSON.stringify( {} ),
 		success: function() {
 			window.location = 'index.html?logout';
 //			location.reload();
@@ -610,8 +626,22 @@ function main() {
 	console.log('Starting page.');
 	setTimeout(function () {
 		Fingerprint2.get(function (components) {
+			let muid = Cookie.get('muid');
 			let fuid = JSON.stringify(components).hashCode();
-			Cookie.set('fuid', fuid );
+			if( muid && Cookie.get('fuid') != ''+fuid ) {
+				$.ajax({
+					url: '/fuid',
+					method: 'POST',
+					contentType:"application/json; charset=utf-8",
+					data: JSON.stringify({muid:muid,fuid:fuid}),
+					success: function(result) {
+						console.log(result.message,'fuid=',Cookie.get('fuid'));
+					},
+					error: function(jqXHR, textStatus) {
+						console.log('fuid not set.');
+					}
+				});
+			}
 		})  ;
 	}, 500)
 

@@ -71,23 +71,37 @@ function serverStart(port,sitePath,localShadowStoneUrl,sessionMaker,storage) {
 	app.use( async function( req, res, next ) {
 		let muid = req.cookies.muid;
 		if( !muid ) {
-			muid = Math.uid();
-			console.log('NEW MACHINE=',muid);
-			let exp = new Date(Date.now() + 2*365*24*60*60*1000);
-			res.cookie( 'muid', muid, { expires: exp } );
-			let machine = new Machine();
-			machine.muid = muid;
-			machine.ip   = Security.remoteAddressToIp(req.connection.remoteAddress);
-			await storage.save(machine);
+			// If this is a bot, we might end up making a ton of new muids, and thus a lot
+			// of new temp accounts that will never be used again.
+			// So, we try to find a machine with the same IP address, and we'll just steal that
+			// muid. If we wrongly re-use a muid, we can live with that.
+			let ip = Security.remoteAddressToIp(req.connection.remoteAddress);
+			let machine = await storage.loadWhere( 'Machine', { ip: ip } );
+			if( machine ) {
+				console.log('Machine: linked by ip');
+				muid = machine.muid;
+				let exp = new Date(Date.now() + 2*365*24*60*60*1000);
+				res.cookie( 'muid', muid, { expires: exp } );
+			}
+			else {
+				muid = Math.uid();
+				console.log('Machine: new',muid);
+				let exp = new Date(Date.now() + 2*365*24*60*60*1000);
+				res.cookie( 'muid', muid, { expires: exp } );
+				let machine = new Machine();
+				machine.muid = muid;
+				machine.ip   = ip;
+				await storage.save(machine);
+			}
 		}
 		if( !req.session.muid ) {
 			req.session.muid = muid;
 			Machine.incVisits(muid);
-			console.log('+1 visit by',muid);
+			console.log('Machine: +1 visit by',muid);
 		}
 		if( req.visitorInfo ) {
-			console.log('updating',muid,'with',req.visitorInfo);
 			req.visitorInfo.userAgent = req.headers['user-agent'];
+			console.log('Machine:',muid,'info=',req.visitorInfo);
 			storage.update('Machine',muid,'info',req.visitorInfo);
 		}
 		return next();

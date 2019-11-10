@@ -21,7 +21,7 @@
 		}
 		fail(res,message) {
 			console.log( '[SECURITY] '+message );
-			res.redirect('/unauthorized.html');
+			return res.redirect('/unauthorized.html');
 		}
 		filter( req, res, next ) {
 			// https://www.nodebeginner.org/blog/post/nodejs-tutorial-whatwg-url-parser/
