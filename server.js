@@ -128,8 +128,8 @@ function serverStart(port,sitePath,localShadowStoneUrl,sessionMaker,storage) {
 
 		if( accountIdBlank ) {
 			let muid = req.session.muid || req.cookies.muid;
-			console.assert( muid );
 			let account;
+			console.log('loading machine',muid);
 			let machine = await storage.load( 'Machine', muid );
 			if( !machine ) {
 				console.log( "ERROR: Always restart the server if you delete entries from Machine." );
