@@ -35,46 +35,63 @@ fi
 if [ "$1" == "deploy" ]
 then
 $connect "/usr/lib/update-notifier/apt-check --human-readable"
+echo Did you remember to npm audit fix before committing?
 fi
 
-if [ "$1" == "deploy" ] && [ "$2" == "strogsvr" ]
+if [ "$1" == "deploy" -o "$1" == "config" -o "$1" == "log" -o "$1" == "logcache" ]
 then
+if [ "$2" != "" ]
+then
+echo $2 > .strog_target
+fi
+export STROG_TARGET=$(<.strog_target)
+if [ "$STROG_TARGET" == "" ]
+then
+echo "Error: must specify a target."
+exit
+fi
+fi
+
+
+if [ "$1" == "deploy" ] && [ "$STROG_TARGET" == "strogsvr" ]
+then
+
 echo Deploying from github.com/wdemarest/strogsvr to strog.com
-$connect "cd ~/strogsvr ; git fetch --all ; git reset --hard origin/master ; npm install ; npm audit fix"
+$connect "cd ~/strogsvr ; git fetch --all ; git reset --hard origin/master ; npm install"
 echo NOTE: If you changed the config be sure to svr config strogsvr
 fi
 
-if [ "$1" == "deploy" ] && [ "$2" == "candyhop" ]
+if [ "$1" == "deploy" ] && [ "$STROG_TARGET" == "candyhop" ]
 then
 echo Deploying from github.com/wdemarest/candyhop to strog.com
-$connect "cd ~/candyhop ; git fetch --all ; git reset --hard origin/master ; npm install ; npm audit fix"
+$connect "cd ~/candyhop ; git fetch --all ; git reset --hard origin/master ; npm install"
 fi
 
-if [ "$1" == "deploy" ] && [ "$2" == "reactorRescue" ]
+if [ "$1" == "deploy" ] && [ "$STROG_TARGET" == "reactorRescue" ]
 then
 echo Deploying from github.com/wdemarest/reactorRescue to strog.com
-$connect "cd ~/reactorRescue ; git fetch --all ; git reset --hard origin/master ; npm install ; npm audit fix"
+$connect "cd ~/reactorRescue ; git fetch --all ; git reset --hard origin/master ; npm install"
 fi
 
-if [ "$1" == "deploy" ] && [ "$2" == "shadowStone" ]
+if [ "$1" == "deploy" ] && [ "$STROG_TARGET" == "shadowStone" ]
 then
 echo Deploying from github.com/wdemarest/shadowStone to strog.com
-$connect "cd ~/shadowStone ; git fetch --all ; git reset --hard origin/master ; npm install ; npm audit fix"
+$connect "cd ~/shadowStone ; git fetch --all ; git reset --hard origin/master ; npm install"
 fi
 
-if [ "$1" == "deploy" ] && [ "$2" == "turmoil" ]
+if [ "$1" == "deploy" ] && [ "$STROG_TARGET" == "turmoil" ]
 then
 echo Deploying from github.com/wdemarest/turmoil to strog.com
 $connect "cd ~/turmoil ; git fetch --all ; git reset --hard origin/master"
 fi
 
-if [ "$1" == "config" ] && [ "$2" == "strogsvr" ]
+if [ "$1" == "config" ] && [ "$STROG_TARGET" == "strogsvr" ]
 then
 echo Pushing strogsvr config to strog.com
 scp -i ~/.ssh/strog.pem ./config.production.secret.hjson ubuntu@strog.com:strogsvr
 fi
 
-if [ "$1" == "config" ] && [ "$2" == "shadowStone" ]
+if [ "$1" == "config" ] && [ "$STROG_TARGET" == "shadowStone" ]
 then
 echo Pushing ../shadowStone config to strog.com
 scp -i ~/.ssh/strog.pem ../shadowStone/config.production.secret.hjson ubuntu@strog.com:shadowStone
@@ -124,17 +141,17 @@ $connect "sudo apt-get autoclean -y"
 fi
 
 
-if [ "$1" == "log" ] && [ "$2" == "strogsvr" ]
+if [ "$1" == "log" ] && [ "$STROG_TARGET" == "strogsvr" ]
 then
 $connect "tail -f -n 100 ~/strogsvr/strogsvr.log"
 fi
 
-if [ "$1" == "log" ] && [ "$2" == "shadowStone" ]
+if [ "$1" == "log" ] && [ "$STROG_TARGET" == "shadowStone" ]
 then
 $connect "tail -f -n 100 ~/shadowStone/shadowStone.log"
 fi
 
-if [ "$1" == "logcache" ] && [ "$2" == "shadowStone" ]
+if [ "$1" == "logcache" ] && [ "$STROG_TARGET" == "shadowStone" ]
 then
 mkdir -p logcache
 scp -i ~/.ssh/strog.pem ubuntu@strog.com:shadowStone/shadowStone.log ./logcache

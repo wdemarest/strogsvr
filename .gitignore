@@ -73,4 +73,5 @@ payments
 sessions
 *.secret.hjson
 archive*
+.strog_target
 
