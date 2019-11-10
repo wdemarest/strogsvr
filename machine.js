@@ -6,7 +6,7 @@
 	let storage = null;
 
 	let MachineReg = ['Machine',{
-		save:    ['muid','ip','visits','guestAccountId','fuid','referrer','info'],
+		save:    ['muid','ip','visits','guestAccountId','fuid','referrer','fbid','info'],
 		_created: true,
 		make:    (data) => new Machine(),
 		table:   'Machine',
@@ -17,7 +17,7 @@
 
 	class Machine {
 		constructor() {
-			Object.assign(this,{muid:null,ip:'',visits:0,guestAccountId:null,fuid:null,referrer:null,info:null});
+			Object.assign(this,{muid:null,ip:'',visits:0,guestAccountId:null,fuid:null,referrer:null,fbid:null,info:null});
 		}
 	}
 

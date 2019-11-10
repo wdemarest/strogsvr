@@ -71,6 +71,7 @@ function serverStart(port,sitePath,localShadowStoneUrl,sessionMaker,storage) {
 	app.use( async function( req, res, next ) {
 		let muid = req.cookies.muid;
 		let referrerKnown = false;
+		let muidKnown = !!muid;
 		if( !muid ) {
 			// If this is a bot, we might end up making a ton of new muids, and thus a lot
 			// of new temp accounts that will never be used again.
@@ -102,14 +103,19 @@ function serverStart(port,sitePath,localShadowStoneUrl,sessionMaker,storage) {
 				await storage.save(machine);
 			}
 		}
-		if( !req.session.muid || !referrerKnown ) {
+		if( !muidKnown || !req.session.muid || !referrerKnown ) {
 			let referrer = req.headers.referrer || req.headers.referer;
 			if( referrer && !Machine.referrerIsSelf(referrer) ) {
 				console.log('Machine: referrer=',referrer);
 				storage.update('Machine',muid,'referrer',referrer,{referrer:null});
 			}
+			let fbid = req.query.fbid || req.query._fbid;
+			if( fbid ) {
+				console.log('Machine: fbid=',fbid);
+				storage.update('Machine',muid,'fbid',fbid,{fbid:null});
+			}
 		}
-		if( !req.session.muid ) {
+		if( !muidKnown || !req.session.muid ) {
 			req.session.muid = muid;
 			Machine.incVisits(muid);
 			console.log('Machine: +1 visit by',muid);
