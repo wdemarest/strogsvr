@@ -118,6 +118,9 @@ function serverStart(port,sitePath,localShadowStoneUrl,sessionMaker,storage) {
 		if( !muidKnown || !req.session.muid ) {
 			// This is a little ambiguous. If the user just logged out, it will be counted as a new
 			// visit by that machine. We might need to be a little more specific.
+			if( !muid ) {
+				console.log('ERROR: Somehow the muid is not set!');
+			}
 			req.session.muid = muid;
 			Machine.incVisits(muid);
 			console.log('Machine: +1 visit by',muid);
@@ -165,8 +168,9 @@ function serverStart(port,sitePath,localShadowStoneUrl,sessionMaker,storage) {
 		}
 
 		if( accountIdBlank ) {
-			console.assert( req.session.muid );
-			let machine = await storage.load( 'Machine', req.session.muid );
+			let muid = req.session.muid || req.cookies.muid;
+			console.assert( muid );
+			let machine = await storage.load( 'Machine', muid );
 			console.assert('machine=',machine);
 			if( machine.guestAccountId ) {
 				console.log('Guest Account exists for',machine.muid);
