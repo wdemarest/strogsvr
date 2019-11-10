@@ -5,6 +5,7 @@ let bodyParser    = require('body-parser');
 let cookieParser  = require('cookie-parser');
 let serveStatic   = require('serve-static');
 let fs            = require('fs');
+let url           = require('url');
 let RedisSession  = require('./redisSession.js');
 let Utils         = require('./utils');
 let DebugProxy    = require('./debugProxy.js');
@@ -68,68 +69,13 @@ function serverStart(port,sitePath,localShadowStoneUrl,sessionMaker,storage) {
 	app.use( bodyParser.urlencoded({extended:false}) );
 	app.locals.pretty = true;
 
-	app.use( async function( req, res, next ) {
-		let muid = req.cookies.muid;
-		let referrerKnown = false;
-		let muidKnown = !!muid;
-		if( !muid ) {
-			// If this is a bot, we might end up making a ton of new muids, and thus a lot
-			// of new temp accounts that will never be used again.
-			// So, we try to find a machine with the same IP address, and we'll just steal that
-			// muid. If we wrongly re-use a muid, we can live with that.
-			let ip = Security.remoteAddressToIp(req.connection.remoteAddress);
-			let machine = await storage.loadWhere( 'Machine', { ip: ip } );
-			if( Object.keys(machine).length > 1 ) {
-				machine = machine[Object.keys(machine)[0]];
-			}
-			if( machine && machine.referrer ) {
-				console.log('Machine: referrer known=',machine.referrer);
-				referrerKnown = true;
-			}
-			if( machine ) {
-				console.log('Machine: linked by ip is',machine);
-				muid = machine.muid;
-				let exp = new Date(Date.now() + 2*365*24*60*60*1000);
-				res.cookie( 'muid', muid, { expires: exp } );
-			}
-			if( !muid ) {
-				muid = Math.uid();
-				console.log('Machine: new',muid);
-				let exp = new Date(Date.now() + 2*365*24*60*60*1000);
-				res.cookie( 'muid', muid, { expires: exp } );
-				let machine = new Machine();
-				machine.muid = muid;
-				machine.ip   = ip;
-				await storage.save(machine);
-			}
-		}
-		if( !muidKnown || !req.session.muid || !referrerKnown ) {
-			let referrer = req.headers.referrer || req.headers.referer;
-			if( referrer && !Machine.referrerIsSelf(referrer) ) {
-				console.log('Machine: referrer=',referrer);
-				storage.update('Machine',muid,'referrer',referrer,{referrer:null});
-			}
-			let fbid = req.query.fbid || req.query._fbid;
-			if( fbid ) {
-				console.log('Machine: fbid=',fbid);
-				storage.update('Machine',muid,'fbid',fbid,{fbid:null});
-			}
-		}
-		if( !muidKnown || !req.session.muid ) {
-			// This is a little ambiguous. If the user just logged out, it will be counted as a new
-			// visit by that machine. We might need to be a little more specific.
-			if( !muid ) {
-				console.log('ERROR: Somehow the muid is not set!');
-			}
-			req.session.muid = muid;
-			Machine.incVisits(muid);
-			console.log('Machine: +1 visit by',muid);
-		}
-		if( req.visitorInfo ) {
-			req.visitorInfo.userAgent = req.headers['user-agent'];
-			console.log('Machine:',muid,'info=',req.visitorInfo);
-			storage.update('Machine',muid,'info',req.visitorInfo);
-		}
+	app.use( function( req, res, next ) {
+		req.ipSimple = String.remoteAddressToIp(req.connection.remoteAddress);
+		return next();
+	});
+
+	app.use( function( req, res, next ) {
+		req.isHomePage = url.parse(req.url).pathname == '/index.html';
 		return next();
 	});
 
@@ -138,14 +84,27 @@ function serverStart(port,sitePath,localShadowStoneUrl,sessionMaker,storage) {
 		let part   = req.url.split('/');
 		let silent = ignore[part[0]] || (part.length>1 && ignore[part[1]]) || (part.length>2 && ignore[part[2]]) || (part.length>3 && ignore[part[3]])
 		if( !silent ) {
-			console.logTraffic(req.session.muid, req.method, req.url);
+			console.logTraffic(req.session.muid || 'NOMUID', req.method, req.url);
 		}
-		next();
+		return next();
 	});
+
+	app.use( async function( req, res, next ) {
+		if( req.isHomePage ) {
+			//console.log('isHomePage=',url.parse(req.url).pathname);
+			await Machine.muid(req,res);
+		}
+		return next();
+	});
+
 
 	app.use( Site.ensureAuthenticated );
 
 	app.use( async function( req, res, next ) {
+		if( !req.isHomePage ) {
+			return next();
+		}
+
 		// IMPORTANT: The browser might not support cookies, or might have them turned off,
 		// so we want to pull the session's accountId if there is no cookie.
 		let accountId = req.cookies.accountId || req.session.accountId;
@@ -170,29 +129,25 @@ function serverStart(port,sitePath,localShadowStoneUrl,sessionMaker,storage) {
 		if( accountIdBlank ) {
 			let muid = req.session.muid || req.cookies.muid;
 			console.assert( muid );
+			let account;
 			let machine = await storage.load( 'Machine', muid );
 			if( !machine ) {
-				// Maybe we somehow were debugging and destroyed the entry for this machine.
-				// In a perfect world I suppose we would go find that muid among the temp accounts
-				// and regenerate it. But whatever.
+				console.log( "ERROR: Always restart the server if you delete entries from Machine." );
 			}
-			console.assert('machine=',machine);
-			if( machine && machine.guestAccountId ) {
+			if( machine.guestAccountId ) {
 				console.log('Guest Account exists for',machine.muid);
-				let account = await storage.load( 'Account', machine.guestAccountId );
-				console.assert(account);
-				Account.loginActivate(req,res,account);
+				account = await storage.load( 'Account', machine.guestAccountId );
 			}
-			else {
-				let ip = req.connection.remoteAddress;
+			if( !account ) {
 				let ua = req.headers['user-agent'];
-				console.log('Temp Account needed for:', ip, 'User-Agent',ua);
-				let account = await Account.createTemp();
+				console.log('Temp Account needed for:', muid, 'User-Agent',ua);
+				account = await Account.createTemp();
 				await storage.save( account );
 				machine.guestAccountId = account.accountId;
 				await storage.save( machine );
-				Account.loginActivate(req,res,account);
 			}
+			console.assert(account);
+			Account.loginActivate(req,res,account);
 		}
 		return next();
 	});

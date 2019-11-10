@@ -25,7 +25,7 @@
 		}
 		filter( req, res, next ) {
 			// https://www.nodebeginner.org/blog/post/nodejs-tutorial-whatwg-url-parser/
-			let ip = Security.remoteAddressToIp(req.connection.remoteAddress);
+			let ip = String.remoteAddressToIp(req.connection.remoteAddress);
 			if( this.knownBadIp[ip] ) {
 				return this.fail(res,'filter '+ip);
 			}
@@ -73,14 +73,6 @@
 
 		}
 	};
-
-	Security.remoteAddressToIp = function(remoteAddress) {
-		let ip = remoteAddress;
-		if( ip.substr(0,7) == '::ffff:' ) {
-			ip = ip.substr(7);
-		}
-		return ip;
-	}
 
 	module.exports = Security;
 

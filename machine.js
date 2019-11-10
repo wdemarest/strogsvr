@@ -21,6 +21,8 @@
 		}
 	}
 
+	Machine.muidSeen = {};
+
 	Machine.onInit = async function(_context) {
 		config     = _context.config;
 		storage    = _context.storage;
@@ -36,7 +38,7 @@
 		app.post( "/fuid", Machine.fuid );
 	}
 
-	Machine.referrerIsSelf = function(referrer) {
+	let referrerIsSelf = function(referrer) {
 		return url.parse(referrer).hostname == Machine.siteDomain;
 	}
 
@@ -63,6 +65,89 @@
 
 	Machine.incVisits = async function(muid) {
 		return await storage.inc('Machine',muid,'visits',1);
+	}
+
+	Machine.machineCreate = async function(muid,ip) {
+		let machine = new Machine();
+		machine.muid = muid;
+		machine.ip   = ip;
+		await storage.save(machine);
+		return machine;
+	}
+
+	Machine.muidKeep = function(req,res,value) {
+		let exp = new Date(Date.now() + 2*365*24*60*60*1000);
+		res.cookie( 'muid', value, { expires: exp } );
+		return value;
+	}
+
+	Machine.muid = async function(req,res) {
+		let muid = req.cookies.muid;
+
+		//
+		// IMPORTANT: All this only happens the very first time we ever see this muid, OR
+		// when there is no muid connected with this machine.
+		//
+		if( !muid || !Machine.muidSeen[muid] ) {
+			// CRITTICAL to set that we've seen it here, because all the work below could take
+			// a long time and we don't want to do it twice.
+			if( muid ) {
+				Machine.muidSeen[muid] = true;
+			}
+			if( !muid ) {
+				// If this is a bot, we might end up making a ton of new muids, and thus a lot
+				// of new temp accounts that will never be used again.
+				// So, we try to find a machine with the same IP address, and we'll just steal that
+				// muid. If we wrongly re-use a muid, we can live with that.
+				let machine = await storage.loadWhere( 'Machine', { ip: req.ipSimple } );
+				// Just get the first one returned. It doesn't really matter which.
+				if( machine ) {
+					if( Object.keys(machine).length > 1 ) {
+						machine = machine[Object.keys(machine)[0]];
+					}
+					console.log('Machine: linked by ip to',machine);
+					muid = Machine.muidKeep(req,res,machine.muid);
+				}
+				// We couldn't find it by ip, so create one. 
+				if( !muid ) {
+					console.log('Machine: new',muid);
+					muid = Machine.muidKeep( req, res, await Machine.machineCreate( Math.uid(), req.ipSimple ).muid );
+				}
+			}
+
+			// OK, now we need to make sure a machine entry really exists for this muid, because a coder
+			// debugging might have deleted it. This is why we remember which muids we've seen.
+			console.log('Machine: first sighting',muid);
+			let machine = await storage.load( 'Machine', muid );
+			if( !machine ) {
+				// If a programmer deleted this machine, regenerate it
+				machine = await Machine.machineCreate( muid, req.ipSimple )
+			}
+
+			let referrer = req.headers.referrer || req.headers.referer;
+			if( referrer && !referrerIsSelf(referrer) && !machine.referrer ) {
+				console.log('Machine: referrer=',referrer);
+				storage.update('Machine',muid,'referrer',referrer);
+			}
+
+			let fbid = req.query.fbid || req.query._fbid;
+			if( fbid && !machine.fbid ) {
+				console.log('Machine: fbid=',fbid);
+				storage.update('Machine',muid,'fbid',fbid);
+			}
+		}
+
+		if( !req.session.muid ) {
+			req.session.muid = muid;
+			Machine.incVisits(muid);
+			console.log('Machine: +1 visit by',muid);
+		}
+
+		if( req.visitorInfo ) {
+			req.visitorInfo.userAgent = req.headers['user-agent'];
+			console.log('Machine:',muid,'info=',req.visitorInfo);
+			storage.update('Machine',muid,'info',req.visitorInfo);
+		}
 	}
 
 	module.exports = Machine;

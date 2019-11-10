@@ -44,6 +44,14 @@
 		return dateString;
 	}
 
+	String.remoteAddressToIp = function(remoteAddress) {
+		let ip = remoteAddress;
+		if( ip.substr(0,7) == '::ffff:' ) {
+			ip = ip.substr(7);
+		}
+		return ip;
+	}
+
 	let consoleLog = console.log;
 	console.logPrior = consoleLog;
 	console.log = function(...args) {
