@@ -129,10 +129,12 @@ function serverStart(port,sitePath,localShadowStoneUrl,sessionMaker,storage) {
 		if( accountIdBlank ) {
 			let muid = req.session.muid || req.cookies.muid;
 			let account;
-			console.log('loading machine',muid);
+			console.log('loading machine',req.session.muid,req.cookies.muid);
 			let machine = await storage.load( 'Machine', muid );
 			if( !machine ) {
 				console.log( "ERROR: Always restart the server if you delete entries from Machine." );
+				// abort here, because something is weird.
+				return next();
 			}
 			if( machine.guestAccountId ) {
 				console.log('Guest Account exists for',machine.muid);
