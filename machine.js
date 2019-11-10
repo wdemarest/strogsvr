@@ -1,5 +1,7 @@
 (function() {
 
+	const url = require('url');
+
 	let config  = null;
 	let storage = null;
 
@@ -23,6 +25,8 @@
 		config     = _context.config;
 		storage    = _context.storage;
 		storage.serial.register( ...MachineReg );
+		console.assert(config.siteUrl);
+		Machine.siteDomain = url.parse(config.siteUrl).hostname;
 	}
 
 	Machine.onInstallRoutes = function(app) {
@@ -30,6 +34,10 @@
 			'/fuid': 1,
 		});
 		app.post( "/fuid", Machine.fuid );
+	}
+
+	Machine.referrerIsSelf = function(referrer) {
+		return url.parse(referrer).hostname == Machine.siteDomain;
 	}
 
 	Machine.fuid = async function(req,res) {

@@ -104,7 +104,7 @@ function serverStart(port,sitePath,localShadowStoneUrl,sessionMaker,storage) {
 		}
 		if( !req.session.muid || !referrerKnown ) {
 			let referrer = req.headers.referrer || req.headers.referer;
-			if( referrer ) {
+			if( referrer && !Machine.referrerIsSelf(referrer) ) {
 				console.log('Machine: referrer=',referrer);
 				storage.update('Machine',muid,'referrer',referrer,{referrer:null});
 			}
