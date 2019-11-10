@@ -83,7 +83,7 @@ function serverStart(port,sitePath,localShadowStoneUrl,sessionMaker,storage) {
 				let exp = new Date(Date.now() + 2*365*24*60*60*1000);
 				res.cookie( 'muid', muid, { expires: exp } );
 			}
-			else {
+			if( !muid ) {
 				muid = Math.uid();
 				console.log('Machine: new',muid);
 				let exp = new Date(Date.now() + 2*365*24*60*60*1000);
