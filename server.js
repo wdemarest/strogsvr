@@ -171,8 +171,13 @@ function serverStart(port,sitePath,localShadowStoneUrl,sessionMaker,storage) {
 			let muid = req.session.muid || req.cookies.muid;
 			console.assert( muid );
 			let machine = await storage.load( 'Machine', muid );
+			if( !machine ) {
+				// Maybe we somehow were debugging and destroyed the entry for this machine.
+				// In a perfect world I suppose we would go find that muid among the temp accounts
+				// and regenerate it. But whatever.
+			}
 			console.assert('machine=',machine);
-			if( machine.guestAccountId ) {
+			if( machine && machine.guestAccountId ) {
 				console.log('Guest Account exists for',machine.muid);
 				let account = await storage.load( 'Account', machine.guestAccountId );
 				console.assert(account);
