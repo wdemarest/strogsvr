@@ -87,7 +87,7 @@
 
 		app.post( "/signup", Account.signup );
 		app.post( "/login",  Account.login );
-		app.post( "/logout", Account.logout );
+		app.get(  "/logout", Account.logout );
 		app.post( "/forgot", Account.forgot );
 		app.get(  "/reset/:id", Account.glyphRedirect);
 		app.get(  "/verify/:id", Account.glyphRedirect);
@@ -291,10 +291,18 @@
 	}
 
 	Account.logout = function(req,res) {
-		console.log('logout');
-		req.session.accountId = null;
-		res.clearCookie('accountId');
-		res.send( { result: 'success' } );
+		console.log('User '+req.session.userName+' logged out.');
+		let meta = storage.serial.getMeta('Account');
+		console.log(req.cookies);
+		for( let key in req.cookies ) {
+			if( meta.save.includes(key) ) {
+				console.log('clearing',key);
+				res.clearCookie(key);
+			}
+		}
+		req.session.regenerate(function(err) {
+			res.redirect('/index.html');
+		});
 	}
 
 	Account.reset = async function(glyph,result,req,res) {

@@ -377,21 +377,7 @@ function assignGtagUserId() {
 assignGtagUserId();
 
 function logout() {
-	$.ajax({
-		url: '/logout',
-		method: 'POST',
-		contentType:"application/json; charset=utf-8",
-		data:JSON.stringify( {} ),
-		success: function() {
-			window.location = 'index.html?logout';
-//			location.reload();
-//			navTweak();
-		},
-		error: function(jqXHR, textStatus) {
-			alert(textStatus);
-		}
-	});
-
+	window.location = '/logout';
 }
 
 

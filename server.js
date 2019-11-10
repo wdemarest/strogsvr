@@ -116,6 +116,8 @@ function serverStart(port,sitePath,localShadowStoneUrl,sessionMaker,storage) {
 			}
 		}
 		if( !muidKnown || !req.session.muid ) {
+			// This is a little ambiguous. If the user just logged out, it will be counted as a new
+			// visit by that machine. We might need to be a little more specific.
 			req.session.muid = muid;
 			Machine.incVisits(muid);
 			console.log('Machine: +1 visit by',muid);

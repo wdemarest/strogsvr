@@ -38,12 +38,6 @@
 			res.redirect('/index.html');
 		});
 
-		app.get( "/logout.html", function(req,res) {
-			console.log('User '+req.session.userName+' logged out.');
-			req.session.destroy();
-			res.redirect('/index.html');
-		});
-
 		app.get( "/*.(html|css|js)", function(req,res) {
 			let fileName = req.params[0].replace(/\./g,'');
 			let fileExt  = req.params[1].replace(/\./g,'');
