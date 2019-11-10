@@ -82,6 +82,7 @@ function serverStart(port,sitePath,localShadowStoneUrl,sessionMaker,storage) {
 				machine = machine[Object.keys(machine)[0]];
 			}
 			if( machine && machine.referrer ) {
+				console.log('Machine: referrer known=',machine.referrer);
 				referrerKnown = true;
 			}
 			if( machine ) {
@@ -101,14 +102,14 @@ function serverStart(port,sitePath,localShadowStoneUrl,sessionMaker,storage) {
 				await storage.save(machine);
 			}
 		}
-		if( !req.session.muid ) {
-			if( !referrerKnown ) {
-				let referrer = req.headers.referrer || req.headers.referer;
-				if( referrer ) {
-					console.log('Machine: referrer=',referrer);
-					storage.update('Machine',muid,'referrer',referrer,{referrer:null});
-				}
+		if( !req.session.muid || !referrerKnown ) {
+			let referrer = req.headers.referrer || req.headers.referer;
+			if( referrer ) {
+				console.log('Machine: referrer=',referrer);
+				storage.update('Machine',muid,'referrer',referrer,{referrer:null});
 			}
+		}
+		if( !req.session.muid ) {
 			req.session.muid = muid;
 			Machine.incVisits(muid);
 			console.log('Machine: +1 visit by',muid);
