@@ -137,7 +137,7 @@
 			}
 		}
 
-		if( !req.session.muid ) {
+		if( !req.session.muid || req.session.muid!=muid) {
 			req.session.muid = muid;
 			Machine.incVisits(muid);
 			console.log('Machine: +1 visit by',muid);
