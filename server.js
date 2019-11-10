@@ -70,6 +70,7 @@ function serverStart(port,sitePath,localShadowStoneUrl,sessionMaker,storage) {
 
 	app.use( async function( req, res, next ) {
 		let muid = req.cookies.muid;
+		let referrerKnown = false;
 		if( !muid ) {
 			// If this is a bot, we might end up making a ton of new muids, and thus a lot
 			// of new temp accounts that will never be used again.
@@ -77,8 +78,14 @@ function serverStart(port,sitePath,localShadowStoneUrl,sessionMaker,storage) {
 			// muid. If we wrongly re-use a muid, we can live with that.
 			let ip = Security.remoteAddressToIp(req.connection.remoteAddress);
 			let machine = await storage.loadWhere( 'Machine', { ip: ip } );
+			if( Object.keys(machine).length > 1 ) {
+				machine = machine[Object.keys(machine)[0]];
+			}
+			if( machine && machine.referrer ) {
+				referrerKnown = true;
+			}
 			if( machine ) {
-				console.log('Machine: linked by ip');
+				console.log('Machine: linked by ip is',machine);
 				muid = machine.muid;
 				let exp = new Date(Date.now() + 2*365*24*60*60*1000);
 				res.cookie( 'muid', muid, { expires: exp } );
@@ -95,6 +102,13 @@ function serverStart(port,sitePath,localShadowStoneUrl,sessionMaker,storage) {
 			}
 		}
 		if( !req.session.muid ) {
+			if( !referrerKnown ) {
+				let referrer = req.headers.referrer || req.headers.referer;
+				if( referrer ) {
+					console.log('Machine: referrer=',referrer);
+					storage.update('Machine',muid,'referrer',referrer,{referrer:null});
+				}
+			}
 			req.session.muid = muid;
 			Machine.incVisits(muid);
 			console.log('Machine: +1 visit by',muid);

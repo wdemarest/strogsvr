@@ -223,7 +223,7 @@
 			//console.log('inc result =',result);
 			return result;
 		}
-		async update(className,id,fieldId,value) {
+		async update(className,id,fieldId,value,filter) {
 			let meta = this.serial.getMeta(className);
 			console.assert(meta, 'Failed to deduce meta for '+className);
 			console.assert(meta.table);
@@ -231,8 +231,11 @@
 			console.assert(fieldId);
 			console.assert(value!==undefined);
 
+			filter = filter || {};
+			filter[meta.idField] = id;
+
 			let result = await this.db.collection(meta.table).updateOne(
-				{ [meta.idField]: id },
+				filter,
 				{ '$set': { [fieldId]: value } },
 				{
 					returnOriginal: false	// WARNING: this is documented in mongodb 3.2.0 as returnNewDocument: true, but that isn't how this driver works
