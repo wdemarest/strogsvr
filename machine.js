@@ -111,7 +111,9 @@
 				// We couldn't find it by ip, so create one. 
 				if( !muid ) {
 					console.log('Machine: new',muid);
-					muid = Machine.muidKeep( req, res, await Machine.machineCreate( Math.uid(), req.ipSimple ).muid );
+					machine = await Machine.machineCreate( Math.uid(), req.ipSimple );
+					console.log(machine);
+					muid = Machine.muidKeep( req, res, machine.muid );
 				}
 			}
 
