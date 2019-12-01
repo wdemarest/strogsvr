@@ -54,11 +54,11 @@
 			}
 
 			if( this.quickRobotsResponse && url.pathname == '/robots.txt' ) {
-				return res.send(quickRobotsResponse);
+				return res.send(this.quickRobotsResponse);
 			}
 
 			if( this.quickAdsResponse && url.pathname == '/ads.txt' ) {
-				return res.send(quickAdsResponse);
+				return res.send(this.quickAdsResponse);
 			}
 
 			let ext = path.extname(url.pathname).slice(1);
