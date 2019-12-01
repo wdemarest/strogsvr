@@ -52,6 +52,14 @@
 		return ip;
 	}
 
+	console.assertPrior = console.assert;
+	console.assert = function( value, message ) {
+		if( !value ) {
+			console.trace( message || "Assertion Failure", "Value=", value );
+		}
+	}
+
+
 	let consoleLog = console.log;
 	console.logPrior = consoleLog;
 	console.log = function(...args) {

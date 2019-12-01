@@ -32,7 +32,7 @@ let Security      = require('./security.js');
 
 let Proxy         = require('http-proxy-middleware');
 
-let plugins = [Glyph, Machine, EmailerGmail, Umbrella, Credential, Account, Tickle, Payment, CandyHop, ReactorRescue, Turmoil, Ops, Site];
+let plugins = [Security, Glyph, Machine, EmailerGmail, Umbrella, Credential, Account, Tickle, Payment, CandyHop, ReactorRescue, Turmoil, Ops, Site];
 
 var Debug = new DebugProxy({
 	glyph: false,
@@ -44,7 +44,7 @@ var Debug = new DebugProxy({
 
 let app = express();
 
-function serverStart(port,sitePath,localShadowStoneUrl,sessionMaker,storage) {
+function serverStart(port,sitePath,localShadowStoneUrl,sessionMaker,storage,security) {
 	port = port || 80;
 	sitePath = sitePath || '.';
 	app.accessNoAuthRequired = {};
@@ -55,8 +55,6 @@ function serverStart(port,sitePath,localShadowStoneUrl,sessionMaker,storage) {
 	let wsProxyShadowStone = Proxy({
 		target: localShadowStoneUrl
 	});
-
-	let security = new Security();
 
 	app.use( security.filter.bind(security) );
 
@@ -195,6 +193,8 @@ async function main() {
 	let config = new Config('STROG_CONFIG_ID');
 	await config.load( 'config.$1.secret.hjson' );
 
+	let security = new Security(config);
+
 	let storage = new StorageMongo(new Serial);
 	await storage.open(config.mongoUrl,config.mongoUser,config.mongoPwd,config.dbName);
 
@@ -226,7 +226,7 @@ async function main() {
 		await storage.convert( className );
 	}
 
-	serverStart( config.port, config.sitePath, config.shadowStoneLocalUrl, sessionMaker, storage );
+	serverStart( config.port, config.sitePath, config.shadowStoneLocalUrl, sessionMaker, storage, security );
 }
 
 

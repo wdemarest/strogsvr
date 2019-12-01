@@ -6,22 +6,32 @@
 	const iplocation = require("iplocation").default;
 
 	class Security {
-		constructor() {
+		constructor(config) {
 			// Sadly, socket.io gets seen as extension .io, so need to include it here.
-			this.validExtension = { '':1, ico:1, js:1, io:1, html:1, css:1, png:1, jpg:1, gif:1, mp3:1, wav:1, ogg:1 };
-			this.validMethod = { GET:1, HEAD:1, POST:1, OPTIONS:1 };
-			this.validCountryCode = { US:1 };
+			console.assert( config.security!==undefined );
+			console.assert( config.security.extensions );
+			console.assert( config.security.methods );
+			console.assert( config.security.countryCodes );
+			console.assert( config.security.unauthorized!==undefined );
+			console.assert( config.security.quickRobotsResponse!==undefined );
+			console.assert( config.security.quickAdsResponse!==undefined );
+			this.validExtension      = config.security.extensions;
+			this.validMethod         = config.security.methods;
+			this.validCountryCode    = config.security.countryCodes;
+			this.unauthorizedUrl     = config.security.unauthorized;
+			this.quickRobotsResponse = config.security.quickRobotsResponse;
+			this.quickAdsResponse    = config.security.quickAdsResponse;
 			this.knownBadIp = {};
 			this.knownGoodIp = {};
 		}
 		isReservedIp(ip) {
 			if( ip == '::1' ) return true;
 			let part = ip.split('.');
-			return part[0] == '192' && part[1] == '168';
+			return (part[0] == '192' && part[1] == '168') || (part[0] == '10');
 		}
 		fail(res,message) {
 			console.log( '[SECURITY] '+message );
-			return res.redirect('/unauthorized.html');
+			return res.redirect(this.unauthorizedUrl);
 		}
 		filter( req, res, next ) {
 			// https://www.nodebeginner.org/blog/post/nodejs-tutorial-whatwg-url-parser/
@@ -41,6 +51,14 @@
 			}
 			if( url.username ) {
 				return this.fail(res,'username found in URL ['+url.username+']');
+			}
+
+			if( this.quickRobotsResponse && url.pathname == '/robots.txt' ) {
+				return res.send(quickRobotsResponse);
+			}
+
+			if( this.quickAdsResponse && url.pathname == '/ads.txt' ) {
+				return res.send(quickAdsResponse);
 			}
 
 			let ext = path.extname(url.pathname).slice(1);

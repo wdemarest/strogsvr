@@ -41,7 +41,12 @@
 		app.get( "/*.(html|css|js)", function(req,res) {
 			let fileName = req.params[0].replace(/\./g,'');
 			let fileExt  = req.params[1].replace(/\./g,'');
-			const src = Fs.createReadStream('./site/'+fileName+'.'+fileExt);
+			let path = './site/'+fileName+'.'+fileExt;
+			const src = Fs.createReadStream(path);
+			src.on('error', (err) => {
+				console.log('Unable to stream',path,err.syscall,err.code,err.errno);
+				res.status(404).send('Resource Not Found '+path);
+			});
 			src.pipe(res);
 		});
 	}

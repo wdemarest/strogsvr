@@ -21,6 +21,7 @@
 		}
 	}
 
+	Machine.ipLinking = false;	// should we try to establish which machine this is by checking its IP? Pitfall is that one house looks like the same machine, no matter how many users
 	Machine.muidSeen = {};
 
 	Machine.onInit = async function(_context) {
@@ -29,6 +30,8 @@
 		storage.serial.register( ...MachineReg );
 		console.assert(config.siteUrl);
 		Machine.siteDomain = url.parse(config.siteUrl).hostname;
+		console.assert(config.ipLinking!==undefined);
+		Machine.ipLinking = !!config.ipLinking;
 	}
 
 	Machine.onInstallRoutes = function(app) {
@@ -99,14 +102,17 @@
 				// of new temp accounts that will never be used again.
 				// So, we try to find a machine with the same IP address, and we'll just steal that
 				// muid. If we wrongly re-use a muid, we can live with that.
-				let machine = await storage.loadWhere( 'Machine', { ip: req.ipSimple } );
-				// Just get the first one returned. It doesn't really matter which.
-				if( machine ) {
-					if( Object.keys(machine).length > 1 ) {
-						machine = machine[Object.keys(machine)[0]];
+				let machine;
+				if( Machine.ipLinking ) {
+					machine = await storage.loadWhere( 'Machine', { ip: req.ipSimple } );
+					// Just get the first one returned. It doesn't really matter which.
+					if( machine ) {
+						if( Object.keys(machine).length > 1 ) {
+							machine = machine[Object.keys(machine)[0]];
+						}
+						console.log('Machine: linked by ip to',machine);
+						muid = Machine.muidKeep(req,res,machine.muid);
 					}
-					console.log('Machine: linked by ip to',machine);
-					muid = Machine.muidKeep(req,res,machine.muid);
 				}
 				// We couldn't find it by ip, so create one. 
 				if( !muid ) {
