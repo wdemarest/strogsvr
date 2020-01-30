@@ -107,14 +107,16 @@
 					let recordHash = {};
 					let discards = 0;
 					//console.log('list=',list);
-					list.forEach( data => {
-						let record = this.serial.inject(null,data);
-						discards += record === undefined ? 1 : 0;
-						if( record !== 'undefined' ) {
-							console.assert(data[idField]);
-							recordHash[data[idField]] = record;
-						}
-					});
+					if( list !== null ) {
+						list.forEach( data => {
+							let record = this.serial.inject(null,data);
+							discards += record === undefined ? 1 : 0;
+							if( record !== 'undefined' ) {
+								console.assert(data[idField]);
+								recordHash[data[idField]] = record;
+							}
+						});
+					}
 					console.logStorage(className,'loaded',Object.keys(recordHash).length,'of',list.length,'with '+discards+' discards.');
 					return resolve( recordHash );
 				});
