@@ -13,6 +13,7 @@ let DebugProxy    = require('./debugProxy.js');
 let StorageMongo  = require('./storageMongo.js');
 let Serial        = require('./serial.js');
 let Config        = require('./config.js');
+let Plugins       = require('./plugins.js');
 
 // Plugins
 let Glyph         = require('./glyph.js');
@@ -32,7 +33,7 @@ let Security      = require('./security.js');
 
 let Proxy         = require('http-proxy-middleware');
 
-let plugins = [Security, Glyph, Machine, EmailerGmail, Umbrella, Credential, Account, Tickle, Payment, CandyHop, ReactorRescue, Turmoil, Ops, Site];
+Plugins.set([Security, Glyph, Machine, EmailerGmail, Umbrella, Credential, Account, Tickle, Payment, CandyHop, ReactorRescue, Turmoil, Ops, Site]);
 
 var Debug = new DebugProxy({
 	glyph: false,
@@ -57,6 +58,13 @@ function serverStart(port,sitePath,localShadowStoneUrl,sessionMaker,storage,secu
 	});
 
 	app.use( security.filter.bind(security) );
+
+	app.use( function handle (req, res, next) {
+		if( req.hostname == 'turmoilrules.com' ) {
+			return res.redirect("http://strog.com/turmoil");
+		}
+		return next();
+	});
 
 	app.use( '/shadowStone', wsProxyShadowStone );
 
@@ -168,7 +176,7 @@ function serverStart(port,sitePath,localShadowStoneUrl,sessionMaker,storage,secu
 
 	// PLUGIN ONINSTALLROUTES
 	console.log('Plugins installing routes.');
-	plugins.forEach( plugin => plugin.onInstallRoutes ? plugin.onInstallRoutes(app) : 0 );
+	Plugins.installRoutes(app);
 
 	//app.theServer = http.createServer(app);
 	console.log('Express listening.');
@@ -207,19 +215,11 @@ async function main() {
 	await redisSessionMaker.open();
 	let sessionMaker = redisSessionMaker.create();
 
-	let appContext = {
+	console.log('Plugins initializing',Plugins.list.length,'plugins.');
+	let appContext = await Plugins.init({
 		config:  config,
 		storage: storage
-	};
-	console.log('Plugins initializing',plugins.length,'plugins.');
-	for( let plugin of plugins ) {
-		if( plugin.id ) {
-			appContext[plugin.id] = plugin;
-		}
-		if( plugin.onInit ) {
-			await plugin.onInit(appContext);
-		}
-	};
+	});
 	// Iterate through all the registered serials to convert data from earlier versions to current versions
 	console.log('Storage converting records...');
 	for( let className of storage.classList ) {
