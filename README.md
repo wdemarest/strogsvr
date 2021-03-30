@@ -234,6 +234,14 @@ curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash -
 sudo apt-get install -y nodejs
 ```
 
+# Monitoring
+The service UptimeRobot monitors strog.com. You can find it at
+```
+https://uptimerobot.com/
+Username: ken.demarest@gmail.com
+Password: <in lastpass>
+```
+
 # To sign players up
 
 1. Visit http://strog.com
