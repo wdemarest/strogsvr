@@ -1,16 +1,54 @@
 # TO SETUP YOUR DEV ENVIRONMENT
 
-You'll need NodeJS v12+, npm, git, nodemon (global install), an editor like Sublime 3.2.1+
-
 ## On Mac, agree to XCode
 ```bash
 sudo xcodebuild -license
 ```
 
+## Install Tools
+You'll need NodeJS v12+, npm, git, nodemon (global install), an editor like Sublime 3.2.1+
+You can use brew for most of these.
+
 ## Git Credentials
 On Mac, type Cmd-Space and find Keychain Access
 Within Keychain search for "github"
 Set the URL to https://github.com and the username and password appropriately
+
+## Clone the repos
+```bash
+cd ~/code
+git clone https://github.com/wdemarest/strogsvr
+git clone https://github.com/wdemarest/candyhop
+git clone https://github.com/wdemarest/reactorRescue
+git clone https://github.com/wdemarest/shadowStone
+git clone https://github.com/wdemarest/turmoil
+```
+
+## Secret Encryption
+This makes it so that a Sublime plugin will auto-encrypt any changes you make to .secret.hjson files
+```bash
+npm install -g node-cipher
+cd ~/code/strogsvr
+tools/util.sh install
+```
+
+## Setup your environment variables
+Edit your \~/.profile and make sure it contains
+```bash
+export STROG_CONFIG_ID=your_config_name_for_example_bob
+export STROG_PASSPHRASE=passphrase_kept_in_my_pwd_file
+```
+
+## Setup your strogsvr/config.<STROG_CONFIG_ID>.secret.hjson file based on config.template.hjson
+Ken has all the details in his password file under strogsvr. These files are excluded from
+version control, but when you change them a Sublime plugin will save them as encrypted .cast5 files
+
+Just in case that doesn't work, here are the methods to encrypt and decrypt them.
+Encrypt:
+nodecipher encrypt "config.production.secret.hjson" "config.production.cast5" <<< "$STROG_PASSPHRASE"
+
+Decrypt:
+nodecipher decrypt "config.production.cast5" "config.production.secret.hjson" <<< "$STROG_PASSPHRASE"
 
 ## Sublime Config
 Click Sublime / Preferences / Settings, and set all of the following:
@@ -24,10 +62,12 @@ Click Sublime / Preferences / Settings, and set all of the following:
 
 ```
 
-Install Sublime Hjson highlighting:
+Install Sublime Hooks and Hjson highlighting:
 1. Install "Package Control" in Sublime: https://packagecontrol.io/installation
 2. Paste that text into Sublime console: Ctrl+Backtick then paste
-3. Restart Sublime. Then Sublime/Preferences/Package Control; type "Package Install" and choose Hjson
+3. Restart Sublime.
+4. Sublime/Preferences/Package Control; type "Package Install" and choose Hjson
+5. Sublime/Preferences/Package Control; type "Package Install" and choose OnSave
 
 ## Mac HID setup
 ```bash
@@ -46,10 +86,10 @@ If you use a roller mouse:
 
 1. If you need to generate a keypair (typically you'll let AWS do this for you)
 ```bash
-openssl genrsa -des3 -out jeesty.pem 2048
-openssl rsa -in jeesty.pem -outform PEM -pubout -out jeesty.pub
-chmod 400 ~/.ssh/jeesty.pub
-chmod 400 ~/.ssh/jeesty.pem
+openssl genrsa -des3 -out strog.pem 2048
+openssl rsa -in strog.pem -outform PEM -pubout -out strog.pub
+chmod 400 ~/.ssh/strog.pub
+chmod 400 ~/.ssh/strog.pem
 ```
 
 2. Boot a fresh Ubuntu instance at EC2
@@ -61,9 +101,11 @@ Pick "t2.micro - free tier eligible"
 Change Security to allow "outbound all" and "inbound port 22" and "inbound port 80"
 Accept all other defaults for storage, etc.
 Pick [Launch], and create a new keypair
-Save it as ~/.ssh/jeesty.pem
-chmod 400 ~/.ssh/jeesty.pem
+Save it as ~/.ssh/strog.pem
+chmod 400 ~/.ssh/strog.pem
 ```
+
+2.1 Be sure that Route53 has strog.com set up properly to point at the IP address of this server.
 
 3. Setup the .pem file
 From local osx terminal:
@@ -75,11 +117,12 @@ ctrl-x  y  <enter>
 ```
 
 4. Secure shell to the remote
+This assumes you have strog.com setup in Route 53 to point to the booted IP address.
 ```bash
-ssh -i ~/.ssh/jeesty.pem ubuntu@54.152.44.153
+ssh ubuntu@strog.com -i ~/.ssh/strog.pem
 ```
 
-5. Install NodeJs and Git
+5. Install NodeJs and Git on the remote
 ```bash
 sudo apt-get update
 sudo apt-get install git
@@ -88,7 +131,7 @@ sudo apt-get install npm
 sudo npm install -g supervisor
 ```
 
-5.5 Install Redis
+5.5 Install Redis on the remote
 ```bash
 sudo apt-get install redis-server
 sudo systemctl enable redis-server.service
@@ -105,9 +148,10 @@ git clone https://github.com/wdemarest/strogsvr
 git clone https://github.com/wdemarest/candyhop
 git clone https://github.com/wdemarest/reactorRescue
 git clone https://github.com/wdemarest/shadowStone
+git clone https://github.com/wdemarest/turmoil
 ```
 
-6.2 Cache passwords for each
+6.1 Cache passwords for each
 ```bash
 cd ~/strogsvr
 git config credential.helper store ; git pull
@@ -119,7 +163,7 @@ cs ~/shadowStone
 git config credential.helper store ; git pull
 ```
 
-6.5 Install packages in each
+6.2 Install node packages in each
 ```bash
 cd ~/strogsvr
 npm install
@@ -138,10 +182,13 @@ sudo sysctl net.ipv4.ip_forward=1
 sudo iptables -t nat -A PREROUTING -p tcp --dport 80 -j REDIRECT --to-port 8080
 ```
 
-8. Setup your ~/strogsvr/config.json file based on config-template.json
-Ken has all the details in his password file under strogsvr
+8. Setup the passphrase on the remote
+Edit \~/.profile and make sure it contains
+```bash
+export STROG_PASSPHRASE=passphrase_kept_in_my_pwd_file
+```
 
-9. Edit the remote ./ssh/known_hosts file and paste appropriate public keys
+9. Edit the remote \~/.ssh/known_hosts file and paste appropriate public keys
 
 10. Get a Mandrill account
    - verify the email address

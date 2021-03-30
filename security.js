@@ -77,7 +77,10 @@
 				if( this.knownGoodIp[ip] ) {
 					return next();
 				}
-				if( error ) throw error;
+				if( error ) {
+					console.log(error);
+					return this.fail( res, 'ip service is down '+error.message );
+				}
 				if( !this.validCountryCode[info.countryCode] ) {
 					this.knownBadIp[ip] = 1;
 					return this.fail( res, 'invalid country code ['+info.countryCode+'] for '+ip );

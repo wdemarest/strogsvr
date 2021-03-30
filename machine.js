@@ -6,7 +6,7 @@
 	let storage = null;
 
 	let MachineReg = ['Machine',{
-		save:    ['muid','ip','visits','guestAccountId','fuid','referrer','fbid','info'],
+		save:    ['muid','ip','visits','guestAccountId','fuid','isPerson','referrer','fbid','info'],
 		_created: true,
 		make:    (data) => new Machine(),
 		table:   'Machine',
@@ -14,14 +14,22 @@
 		version: 1,
 		convert: null
 	}];
+	// muid   - the machine unique id, stored as a cookie.
+	//    It is used to track each machine that visits, and when detected the 'visits' is incremented.
+	// ip     - the ip address this machine had when we first created its muid
+	// visits - how many times this machine has visited
+	// guestAccountId - used by other systems to give this machine a guest account. If multiple users use it, so be it
+	// fuid - the fingerprint of this machine. Stored for speculative reasons.
+	// isPerson - this is a real human being, as detected via mouse usage
+	// referred - the standard website referrer
+	// info - detailed info on the browser etc.
 
 	class Machine {
 		constructor() {
-			Object.assign(this,{muid:null,ip:'',visits:0,guestAccountId:null,fuid:null,referrer:null,fbid:null,info:null});
+			Object.assign(this,{muid:null,ip:'',visits:0,guestAccountId:null,fuid:null,isPerson:null,referrer:null,fbid:null,info:null});
 		}
 	}
 
-	Machine.ipLinking = false;	// should we try to establish which machine this is by checking its IP? Pitfall is that one house looks like the same machine, no matter how many users
 	Machine.muidSeen = {};
 
 	Machine.onInit = async function(_context) {
@@ -30,15 +38,15 @@
 		storage.serial.register( ...MachineReg );
 		console.assert(config.siteUrl);
 		Machine.siteDomain = url.parse(config.siteUrl).hostname;
-		console.assert(config.ipLinking!==undefined);
-		Machine.ipLinking = !!config.ipLinking;
 	}
 
 	Machine.onInstallRoutes = function(app) {
 		Object.assign( app.accessNoAuthRequired, {
 			'/fuid': 1,
+			'/person': 1
 		});
 		app.post( "/fuid", Machine.fuid );
+		app.post( "/person", Machine.person );
 	}
 
 	let referrerIsSelf = function(referrer) {
@@ -54,6 +62,9 @@
 		if( !muid || !fuid ) {
 			return res.send({result:'failure',message:'empty muid or fuid'});
 		}
+		if( muid !== req.session.muid ) {
+			return res.send({result:'failure',message:'muid mismatch'});
+		}
 		if( req.cookies.fuid == fuid ) {
 			return res.send({result:'success',message:'fuid already identical'});
 		}
@@ -65,6 +76,27 @@
 		storage.update('Machine',muid,'fuid',fuid);
 		return res.send({result:'success',message:'fuid set'});
 	}
+
+	Machine.person = async function(req,res) {
+		// The client tries to make sure this only gets calls when the fuid cookie is different from
+		// the actual (possibly hanging) fuid value. But double-check that here, and make this the authority
+
+		let muid = req.body.muid;
+		if( !muid ) {
+			return res.send({result:'failure',message:'empty muid'});
+		}
+		if( muid !== req.session.muid ) {
+			return res.send({result:'failure',message:'muid mismatch'});
+		}
+		let exp = new Date(Date.now() + 2*365*24*60*60*1000);
+		console.log('Machine is person:',muid);
+		let isPerson = 1;
+		res.cookie( 'isPerson', isPerson, { expires: exp } );
+		req.session.isPerson = isPerson;
+		storage.update('Machine',muid,'isPerson',isPerson);
+		return res.send({result:'success',message:'isPerson set'});
+	}
+
 
 	Machine.incVisits = async function(muid) {
 		return await storage.inc('Machine',muid,'visits',1);
@@ -98,29 +130,10 @@
 				Machine.muidSeen[muid] = true;
 			}
 			if( !muid ) {
-				// If this is a bot, we might end up making a ton of new muids, and thus a lot
-				// of new temp accounts that will never be used again.
-				// So, we try to find a machine with the same IP address, and we'll just steal that
-				// muid. If we wrongly re-use a muid, we can live with that.
-				let machine;
-				if( Machine.ipLinking ) {
-					machine = await storage.loadWhere( 'Machine', { ip: req.ipSimple } );
-					// Just get the first one returned. It doesn't really matter which.
-					if( machine ) {
-						if( Object.keys(machine).length > 1 ) {
-							machine = machine[Object.keys(machine)[0]];
-						}
-						console.log('Machine: linked by ip to',machine);
-						muid = Machine.muidKeep(req,res,machine.muid);
-					}
-				}
-				// We couldn't find it by ip, so create one. 
-				if( !muid ) {
-					console.log('Machine: new',muid);
-					machine = await Machine.machineCreate( Math.uid(), req.ipSimple );
-					console.log(machine);
-					muid = Machine.muidKeep( req, res, machine.muid );
-				}
+				console.log('Machine: new',muid);
+				let machine = await Machine.machineCreate( Math.uid(), req.ipSimple );
+				console.log(machine);
+				muid = Machine.muidKeep( req, res, machine.muid );
 			}
 
 			// OK, now we need to make sure a machine entry really exists for this muid, because a coder
@@ -128,7 +141,9 @@
 			console.log('Machine: first sighting',muid);
 			let machine = await storage.load( 'Machine', muid );
 			if( !machine ) {
-				// If a programmer deleted this machine, regenerate it
+				// If a programmer deleted this machine, regenerate it. This is the only
+				// way that this code gets visited. In production, if this happens, then
+				// somebody hacked their own muid cookie identity client-side.
 				machine = await Machine.machineCreate( muid, req.ipSimple )
 			}
 
@@ -145,6 +160,8 @@
 			}
 		}
 
+		// WARNING! Is this legit code? Maybe the session muid should have been set
+		// somewhere up above...
 		if( !req.session.muid || req.session.muid!=muid) {
 			req.session.muid = muid;
 			Machine.incVisits(muid);

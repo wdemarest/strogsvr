@@ -151,6 +151,12 @@ then
 $connect "tail -f -n 100 ~/shadowStone/shadowStone.log"
 fi
 
+if [ "$1" == "logcache" ] && [ "$STROG_TARGET" == "strogsvr" ]
+then
+mkdir -p logcache
+scp -i ~/.ssh/strog.pem ubuntu@strog.com:strogsvr/strogsvr.log ./logcache
+fi
+
 if [ "$1" == "logcache" ] && [ "$STROG_TARGET" == "shadowStone" ]
 then
 mkdir -p logcache

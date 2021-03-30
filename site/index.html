@@ -30,6 +30,19 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/fingerprintjs2@2.1.0/dist/fingerprint2.min.js"></script>
+<script src="https://www.google.com/recaptcha/api.js?render=6Lcu9-EUAAAAAL-NXERoo6H6zJa7N1C10wscZfRG"></script>
+<script>
+	// We use recaptcha v3 to determine whether this activity is human.
+	// See: https://developers.google.com/recaptcha/docs/v3
+	// Administer at: https://www.google.com/recaptcha/admin/site/350353198
+	grecaptcha.ready(function() {
+		grecaptcha.execute('6Lcu9-EUAAAAAL-NXERoo6H6zJa7N1C10wscZfRG', {action: 'homepage'}).then(function(token) {
+			if( token.score > 0.50 ) {
+				// This is a probable human.
+			}
+		});
+	});
+</script>
 <link rel="stylesheet" href="nav.css">
 
 <style>
@@ -608,28 +621,67 @@ function navTweak() {
 	$('#navLogout').toggle( isFullUser )
 }
 
+function fingerprint() {
+	Fingerprint2.get(function (components) {
+		let muid = Cookie.get('muid');
+		let fuid = JSON.stringify(components).hashCode();
+		if( muid && Cookie.get('fuid') != ''+fuid ) {
+			$.ajax({
+				url: '/fuid',
+				method: 'POST',
+				contentType:"application/json; charset=utf-8",
+				data: JSON.stringify({muid:muid,fuid:fuid}),
+				success: function(result) {
+					console.log(result.message,'fuid=',Cookie.get('fuid'));
+				},
+				error: function(jqXHR, textStatus) {
+					console.log('fuid not set.');
+				}
+			});
+		}
+	})  ;
+}
+
+function verifyHuman(e) {
+	if(e.originalEvent === undefined) {
+		// turns out this only is set when a human triggered the event, unless hacked of course.
+		return;
+	}
+
+	if( window.isPerson ) {
+		return;
+	}
+
+	let muid = Cookie.get('muid');
+	window.isPerson = 1;
+	Cookie.set('isPerson',window.isPerson);
+
+	$.ajax({
+		url: '/person',
+		method: 'POST',
+		contentType:"application/json; charset=utf-8",
+		data: JSON.stringify({muid:muid}),
+		success: function(result) {
+			console.log(result.message);
+		},
+		error: function(jqXHR, textStatus) {
+			console.log('isPerson not set.');
+		}
+	});
+
+
+	// This moment, when we know it is a real user, is the right time to incur the overhead of
+	// calculating the fingerprint.
+	setTimeout( fingerprint, 100)
+}
+
+
+
 function main() {
 	console.log('Starting page.');
-	setTimeout(function () {
-		Fingerprint2.get(function (components) {
-			let muid = Cookie.get('muid');
-			let fuid = JSON.stringify(components).hashCode();
-			if( muid && Cookie.get('fuid') != ''+fuid ) {
-				$.ajax({
-					url: '/fuid',
-					method: 'POST',
-					contentType:"application/json; charset=utf-8",
-					data: JSON.stringify({muid:muid,fuid:fuid}),
-					success: function(result) {
-						console.log(result.message,'fuid=',Cookie.get('fuid'));
-					},
-					error: function(jqXHR, textStatus) {
-						console.log('fuid not set.');
-					}
-				});
-			}
-		})  ;
-	}, 500)
+	window.isPerson = !!parseInt(Cookie.get('isPerson'));
+	$(document).on( 'mousemove', verifyHuman );
+	$(document).on( 'mousedown', verifyHuman );
 
 	let glyphId = Cookie.get( 'glyphId' );
 	if( glyphId ) {

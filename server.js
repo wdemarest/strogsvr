@@ -116,6 +116,15 @@ function serverStart(port,sitePath,localShadowStoneUrl,sessionMaker,storage,secu
 		let accountId = req.cookies.accountId || req.session.accountId;
 		let accountIdBlank = !accountId || accountId=='undefined' || accountId=='null' || accountId=='0';
 
+//
+// TODO: Ken left this hanging, but needed to commit other thing.
+// someday it might cause trouble...
+//
+//		At this moment we have to establish a completely blank session.
+//		Then we learn whether this has been validated as a human being.
+//		If so, go find or create the account. If not, let it all be blank.
+
+
 		if( !accountIdBlank && !req.session.accountId ) {
 			// The user is making a claim as to his account, but we haven't
 			// established a session yet for this user...
@@ -169,6 +178,7 @@ function serverStart(port,sitePath,localShadowStoneUrl,sessionMaker,storage,secu
 			res.cookie( 'userName', req.session.userName, { expires: exp } );
 			res.cookie( 'userEmail', req.session.userEmail, { expires: exp } );
 			res.cookie( 'isAdmin', req.session.isAdmin, { expires: exp } );
+			res.cookie( 'isPerson', req.session.isPerson, { expires: exp } );
 			res.cookie( 'isTemp', req.session.isTemp, { expires: exp } );
 		}
 		return next();
