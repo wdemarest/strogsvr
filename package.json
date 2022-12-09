@@ -12,7 +12,7 @@
 		"cookie-parser": "^1.4.4",
 		"email-deep-validator": "^3.3.0",
 		"email-validator": "^2.0.4",
-		"express": "^4.12.3",
+		"express": "^4.17.3",
 		"express-session": "^1.16.1",
 		"gmail-send": "^1.8.10",
 		"hjson": "^3.1.2",
